@@ -1,0 +1,118 @@
+version: "3"
+
+volumes:
+  ckan_storage:
+    driver: local
+  pg_data:
+    driver: local
+  solr_data:
+    driver: local
+  fuseki_data:
+    driver: local
+  fuseki_logs:
+    driver: local
+
+services:
+
+  nginx:
+    container_name: ${NGINX_CONTAINER_NAME}
+    build:
+      context: nginx/
+      dockerfile: Dockerfile
+    depends_on:
+      ckan:
+        condition: service_healthy
+    ports:
+      - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
+
+  ckan:
+    container_name: ${CKAN_CONTAINER_NAME}
+    build:
+      context: ckan/
+      dockerfile: Dockerfile
+      args:
+        - TZ=${TZ}
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    volumes:
+      - ckan_storage:/var/lib/ckan
+      - ./ckan.ini:/srv/app/ckan.ini
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
+
+  db:
+    container_name: ${POSTGRESQL_CONTAINER_NAME}
+    build:
+      context: postgresql/
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - CKAN_DB_USER
+      - CKAN_DB_PASSWORD
+      - CKAN_DB
+      - DATASTORE_READONLY_USER
+      - DATASTORE_READONLY_PASSWORD
+      - DATASTORE_DB
+      - KC_DB_USERNAME
+      - KC_DB_PASSWORD
+      - KC_DB_NAME
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+
+  solr:
+    container_name: ${SOLR_CONTAINER_NAME}
+    image: ckan/ckan-solr:${SOLR_IMAGE_VERSION}
+    volumes:
+      - solr_data:/var/solr
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
+
+  redis:
+    container_name: ${REDIS_CONTAINER_NAME}
+    image: redis:${REDIS_VERSION}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-e", "QUIT"]
+
+  keycloak:
+    build:
+      context: keycloak/
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - KC_DB_URL
+      - KC_DB_USERNAME
+      - KC_DB_PASSWORD
+      - KEYCLOAK_ADMIN
+      - KEYCLOAK_ADMIN_PASSWORD
+    healthcheck:
+      test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/health/ready"]
+
+  national_catalogue_mock:
+    build: national-node-catalogue-mock/
+    environment:
+      - HARVESTER_URL=${CKAN_SITE_URL}
+    ports:
+      - 8001:8001
+    restart: unless-stopped
