@@ -10,28 +10,33 @@ volumes:
 
 services:
   nginx:
-    container_name: ${NGINX_CONTAINER_NAME}
     build:
       context: nginx/
       dockerfile: Dockerfile
     depends_on:
       frontend:
         condition: service_healthy
+    environment:
+      - ID_HOSTNAME
+      - CATALOGUE_HOSTNAME
+      - DISCOVER_HOSTNAME
     ports:
-      - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
+      - 80:80
 
   frontend:
-    container_name: ${FRONTEND_CONTAINER_NAME}
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:${FRONTEND_IMAGE_VERSION}
     depends_on:
       ckan:
         condition: service_healthy
     restart: unless-stopped
+    environment:
+      - BACKEND_URL
+      - IDENTITY_SERVER_URL
+      - IDENTITY_SERVER_CLIENT_ID
     healthcheck:
       test: ["CMD", "service", "nginx", "status"]
 
   ckan:
-    container_name: ${CKAN_CONTAINER_NAME}
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
     env_file:
       - .env
@@ -49,11 +54,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
-    ports: #TODO - remove after nginx is configured
-      - "0.0.0.0:${CKAN_PORT_HOST}:${CKAN_PORT}"
+    extra_hosts:
+      - "id.local.gdi.lu:host-gateway"
 
   postgres:
-    container_name: ${POSTGRESQL_CONTAINER_NAME}
     build:
       context: postgresql/
     environment:
@@ -73,7 +77,6 @@ services:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
-    container_name: ${SOLR_CONTAINER_NAME}
     image: ckan/ckan-solr:${SOLR_IMAGE_VERSION}
     volumes:
       - solr_data:/var/solr
@@ -82,18 +85,15 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
 
   redis:
-    container_name: ${REDIS_CONTAINER_NAME}
     image: redis:${REDIS_VERSION}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "-e", "QUIT"]
 
-  keycloak: # TODO Map keycloak endpoints via nginx
+  keycloak:
     build:
       context: keycloak/
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,5 +104,7 @@ services:
       - KEYCLOAK_ADMIN
       - KEYCLOAK_ADMIN_PASSWORD
       - KC_HOSTNAME
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
       test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/health/ready"]

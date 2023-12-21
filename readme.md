@@ -1,6 +1,5 @@
-# ckan-gdi
-Deployment notes for CKAN (based on https://github.com/GenomicDataInfrastructure/gdi-userportal-ckan-docker/tree/user-portal-main) assuming RHEL-based Linux distribution.
-The docker-compose file has been manually modified so that the deployment includes ckan.ini from this directory.
+# GDI User Portal
+This is a deployment example of GDI User Portal, assuming RHEL-based Linux distribution.
 
 # Preparatory steps on the VM
 ```
@@ -26,21 +25,22 @@ firewall-cmd --permanent --zone=public --add-port=8443/tcp
 # Prepare the project files
 mkdir -p /srv
 cd /srv
-git clone https://github.com/GenomicDataInfrastructure/gdi-userportal-ckan-docker.git
-cd gdi-userportal-ckan-docker/
-git checkout user-portal-main
+git clone https://github.com/GenomicDataInfrastructure/gdi-userportal-deployment.git
+cd gdi-userportal-ckan-deployment/
 cp .env.example .env
-
-# Replace docker-compose.yml with the file provided in this repository
-# Place ckan.ini
 ```
 
 # Configuration
-Check ckan.ini file, fill .env values
+* Check and fill .env values;
+* If you want SSL, configure NGINX templates and add certificates.
 
 # Running
 ```
 sudo su
-cd /srv/gdi-userportal-ckan-docker/
-docker compose up -d
+cd /srv/gdi-userportal-deployment/
+docker compose up -d --build
 ```
+
+# Post configuration
+* Add a new user to CKAN realm in Keycloak;
+* Ensure both CKAN and frontend are pointing to the same Keycloak;
