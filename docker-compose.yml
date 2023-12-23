@@ -7,35 +7,41 @@ volumes:
     driver: local
   solr_data:
     driver: local
-  fuseki_data:
-    driver: local
-  fuseki_logs:
-    driver: local
 
 services:
-
   nginx:
-    container_name: ${NGINX_CONTAINER_NAME}
     build:
       context: nginx/
       dockerfile: Dockerfile
     depends_on:
+      frontend:
+        condition: service_healthy
+    environment:
+      - ID_HOSTNAME
+      - CATALOGUE_HOSTNAME
+      - DISCOVER_HOSTNAME
+    ports:
+      - 80:80
+
+  frontend:
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:${FRONTEND_IMAGE_VERSION}
+    depends_on:
       ckan:
         condition: service_healthy
-    ports:
-      - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL
+      - IDENTITY_SERVER_URL
+      - IDENTITY_SERVER_CLIENT_ID
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
 
   ckan:
-    container_name: ${CKAN_CONTAINER_NAME}
-    build:
-      context: ckan/
-      dockerfile: Dockerfile
-      args:
-        - TZ=${TZ}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
     env_file:
       - .env
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
       solr:
         condition: service_healthy
@@ -45,13 +51,13 @@ services:
         condition: service_healthy
     volumes:
       - ckan_storage:/var/lib/ckan
-      - ./ckan.ini:/srv/app/ckan.ini
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
+    extra_hosts:
+      - "id.local.gdi.lu:host-gateway"
 
-  db:
-    container_name: ${POSTGRESQL_CONTAINER_NAME}
+  postgres:
     build:
       context: postgresql/
     environment:
@@ -61,9 +67,6 @@ services:
       - CKAN_DB_USER
       - CKAN_DB_PASSWORD
       - CKAN_DB
-      - DATASTORE_READONLY_USER
-      - DATASTORE_READONLY_PASSWORD
-      - DATASTORE_DB
       - KC_DB_USERNAME
       - KC_DB_PASSWORD
       - KC_DB_NAME
@@ -74,7 +77,6 @@ services:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
-    container_name: ${SOLR_CONTAINER_NAME}
     image: ckan/ckan-solr:${SOLR_IMAGE_VERSION}
     volumes:
       - solr_data:/var/solr
@@ -83,7 +85,6 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
 
   redis:
-    container_name: ${REDIS_CONTAINER_NAME}
     image: redis:${REDIS_VERSION}
     restart: unless-stopped
     healthcheck:
@@ -93,12 +94,8 @@ services:
     build:
       context: keycloak/
     restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./keycloak/realms:/opt/keycloak/data/import:ro
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     environment:
       - KC_DB_URL
@@ -106,13 +103,8 @@ services:
       - KC_DB_PASSWORD
       - KEYCLOAK_ADMIN
       - KEYCLOAK_ADMIN_PASSWORD
+      - KC_HOSTNAME
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
       test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/health/ready"]
-
-  national_catalogue_mock:
-    build: national-node-catalogue-mock/
-    environment:
-      - HARVESTER_URL=${CKAN_SITE_URL}
-    ports:
-      - 8001:8001
-    restart: unless-stopped
