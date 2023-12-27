@@ -55,7 +55,7 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
     extra_hosts:
-      - "id.local.gdi.lu:host-gateway"
+      - "id.local.onemilliongenomes.eu:host-gateway"
 
   postgres:
     build:
