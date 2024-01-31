@@ -1,3 +1,13 @@
+<!--
+SPDX-FileCopyrightText: 2024 PNED G.I.E.
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+[![REUSE status](https://api.reuse.software/badge/github.com/GenomicDataInfrastructure/gdi-userportal-deployment)](https://api.reuse.software/info/github.com/GenomicDataInfrastructure/gdi-userportal-deployment)
+![example workflow](https://github.com/GenomicDataInfrastructure/gdi-userportal-deployment/actions/workflows/test.yml/badge.svg)
+[![GitHub contributors](https://img.shields.io/github/contributors/GenomicDataInfrastructure/gdi-userportal-deployment)](https://github.com/GenomicDataInfrastructure/gdi-userportal-deployment/graphs/contributors)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+
 # GDI User Portal
 This is a deployment example of GDI User Portal, assuming RHEL-based Linux distribution.
 
@@ -44,3 +54,11 @@ docker compose up -d --build
 # Post configuration
 * Add a new user to CKAN realm in Keycloak;
 * Ensure both CKAN and frontend are pointing to the same Keycloak;
+
+## License
+
+This work is licensed under multiple licences. Here is a brief summary as of January 2024:
+
+- All original source code is licensed under [Apache-2.0](./LICENSES/Apache-2.0.txt).
+- All documentation is licensed under [CC-BY-4.0](./LICENSES/CC-BY-4.0.txt).
+- For more accurate information, check the individual files.

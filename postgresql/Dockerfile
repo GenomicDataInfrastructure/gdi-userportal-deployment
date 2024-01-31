@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 PNED G.I.E.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 FROM postgres:12-alpine
 
 # Include extra setup scripts (eg datastore)
