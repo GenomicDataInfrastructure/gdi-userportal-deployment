@@ -1,0 +1,14 @@
+#SPDX-FileCopyrightText: 2024 2024 Stichting Health-RI
+#
+#SPDX-License-Identifier: Apache-2.0
+
+version: "3"
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.3
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${WEBAPP_STORAGE_HOME}/data:/opt/keycloak/data/
+    restart: always
+    command: start --proxy=edge --hostname-strict=false --hostname-strict-https=false
