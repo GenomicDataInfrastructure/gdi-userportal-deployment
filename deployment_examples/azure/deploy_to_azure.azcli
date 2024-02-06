@@ -1,0 +1,253 @@
+#SPDX-FileCopyrightText: 2024 Stichting Health-RI
+#
+#SPDX-License-Identifier: Apache-2.0
+
+az login
+echo "Welcome to the script to set up environment in Azure including SOLR, CKAN, Catalogue, Redis and Postgres server"
+read -p "Enter Github username for getting docker images: " dockerRegistryUsername  
+echo  # New line after password input 
+read -sp "Enter Github Personal access(classic) token with package read permissions: " dockerRegistryPassword  
+echo  # New line after password input 
+read -p "Enter the name of your project(GDI, EUCAIM, ..): " nameProject  
+echo  # New line after project input 
+read -p "Enter the name of your environment(dev, test or uac. Or leave it empty for production): " environment 
+echo  # New line after environment input 
+read -p "What is your public ip(IPv4): " publicIp 
+echo  # New line after environment input 
+
+
+
+## General variables
+location="westeurope"
+resourceGroupName="$nameProject$environment"
+dockerRegistryUrl="https://ghcr.io"
+
+# Postgres variables
+serverName="$nameProject$environment"
+adminUser="psqladminun"
+adminPassword="postgres"
+ckanDbName="ckandb"
+ckandbpassword="ckandbpassword"
+ckandbuser="ckandbuser"
+keycloakDbName="keycloakdb"
+
+# Container app varuables 
+appServicePlan="$nameProject$environment"
+
+# Container appp variables solr
+webAppNameSolr="$nameProject-ckan-solr$environment"
+dockerImageSolr="ckan/ckan-solr:2.10-solr9"
+
+# Container app variables keycloak
+keycloakWebAppName="$nameProject-keycloak$environment"
+keycloakDb="keycloakdb"
+keycloakkDbUrl="jdbc:postgresql://$serverName.postgres.database.azure.com:5432/$keycloakDb?&sslmode=verify-ca&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory"
+keycloakDbUser="keycloakdbuser"
+keycloakDbPassword="keycloakdbpassword"
+keycloakAdminUser="admin"
+keycloakAdminPassword="admin"
+keycloakFrontendUrl="https://$keycloakWebAppName.azurewebsites.net/auth"
+
+#  Variables Redis 
+redisName="$nameProject-ckan$environment"
+
+# Varaibles Catalogue
+webAppNameCatalogue="$nameProject-catalogue$environment"
+dockerImageCatalogue="genomicdatainfrastructure/gdi-userportal-frontend:main"
+
+# Variables CKAN 
+webAppNameCkan="$nameProject-ckan$environment" 
+dockerImageCkan="genomicdatainfrastructure/gdi-userportal-ckan-docker:main"
+
+# Create Resource Group
+az group create --name $resourceGroupName --location $location
+
+### Postgress Server ####
+az postgres flexible-server create \
+    --name $serverName \
+    --resource-group $resourceGroupName \
+    --location $location \
+    --admin-user $adminUser \
+    --admin-password $adminPassword \
+    --public-access 0.0.0.0 \
+    --sku-name Standard_B1ms \
+    --tier Burstable \
+    --version 11
+
+az postgres flexible-server parameter set \
+    --name require_secure_transport \
+    --resource-group $resourceGroupName \
+    --server-name $serverName \
+    --value off
+
+# Add health-RI location
+az postgres flexible-server firewall-rule create \
+    --resource-group $resourceGroupName \
+    --name $serverName  \
+    --rule-name Client-ip \
+    --start-ip-address publicIp \
+    --end-ip-address publicIp
+
+set -e
+psql "host=$serverName.postgres.database.azure.com port=5432 dbname=postgres user=$adminUser password=$adminPassword sslmode=disable" <<-EOSQL
+    CREATE ROLE "$ckandbuser" WITH LOGIN PASSWORD '$ckandbpassword' NOSUPERUSER CREATEDB CREATEROLE;
+    CREATE DATABASE "$ckanDbName" ENCODING 'UTF8';
+    GRANT "$ckandbuser" TO "$adminUser";
+    ALTER DATABASE "$ckanDbName" OWNER TO "$ckandbuser";
+
+    CREATE ROLE "$keycloakDbUser" WITH LOGIN PASSWORD '$keycloakDbPassword' NOSUPERUSER CREATEDB CREATEROLE;
+    CREATE DATABASE "$keycloakDbName" ENCODING 'UTF8';
+    GRANT "$keycloakDbUser" TO "$adminUser";
+    ALTER DATABASE "$keycloakDbName" OWNER TO "$keycloakDbUser";
+EOSQL
+
+### Azure web apps ####
+
+## Create App Service Plan
+echo "Setting app service plan for container apps"
+az appservice plan create \
+    --name $appServicePlan \
+    --resource-group $resourceGroupName \
+    --is-linux \
+    --sku B2  # Change SKU as need
+
+## container app containing solr
+echo "Web app solr"
+az webapp create \
+    --name $webAppNameSolr \
+    --resource-group $resourceGroupName \
+    --https-only true \
+    --plan $appServicePlan \
+    --deployment-container-image-name $dockerImageSolr
+
+echo "Set the configuration settings SOLR"
+az webapp config appsettings set --name $webAppNameSolr --resource-group $resourceGroupName --settings \
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" \
+    DOCKER_REGISTRY_SERVER_PASSWORD="" \
+    DOCKER_REGISTRY_SERVER_URL="https://index.docker.io" \
+    DOCKER_REGISTRY_SERVER_USERNAME=""
+
+## Container app containing keycloak
+echo "Web app Keycloak"
+az webapp create \
+    --name $keycloakWebAppName \
+    --resource-group $resourceGroupName \
+    --plan $appServicePlan \
+    --https-only true \
+    --multicontainer-config-type compose \
+    --multicontainer-config-file keycloak.yml
+
+az webapp config appsettings set --name $keycloakWebAppName --resource-group $resourceGroupName --settings \
+    DOCKER_REGISTRY_SERVER_URL=https://index.docker.io/v1 \
+    KC_DB=postgres \
+    KC_DB_URL=$keycloakkDbUrl \
+    KC_DB_USERNAME=$keycloakDbUser \
+    KC_DB_PASSWORD=$keycloakDbPassword \
+    KEYCLOAK_ADMIN=$keycloakAdminUser \
+    KEYCLOAK_ADMIN_PASSWORD=$keycloakAdminPassword \
+    KEYCLOAK_FRONTEND_URL=$keycloakFrontendUrl \
+    WEBSITES_CONTAINER_START_TIME_LIMIT=500 \
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+    WEBSITES_PORT=8080
+
+echo "Container app containing the catalog frond end"
+az webapp create \
+    --name $webAppNameCatalogue \
+    --resource-group $resourceGroupName \
+    --plan $appServicePlan \
+    --https-only true \
+    --deployment-container-image-name $dockerImageCatalogue
+
+echo "Set the configuration settings"
+az webapp config appsettings set --name $webAppNameCatalogue --resource-group $resourceGroupName --settings \
+    BACKEND_URL="https://$webAppNameCkan.healthdata.nl" \
+    IDENTITY_SERVER_CLIENT_ID="ckan" \
+    IDENTITY_SERVER_HOST_URL="https://$keycloakWebAppName.azurewebsites.net" \
+    IDENTITY_SERVER_URL="https://$keycloakWebAppName.azurewebsites.net/realms/ckan" \
+    PRODUCTION="true" \
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" \
+    DOCKER_REGISTRY_SERVER_PASSWORD=$dockerRegistryPassword \
+    DOCKER_REGISTRY_SERVER_URL=$dockerRegistryUrl \
+    DOCKER_REGISTRY_SERVER_USERNAME=$dockerRegistryUsername
+
+echo "Web app $webAppNameCatalogue created and configured successfully."
+
+## Azure Cache for Redis
+echo "Azure Cache for Redis"
+az redis create \
+    --location $location \
+    --name $redisName \
+    --resource-group $resourceGroupName \
+    --sku Basic \
+    --vm-size C0
+primaryKey=$(az redis list-keys --resource-group $resourceGroupName --name $redisName --query primaryKey 2>&1 | sed -e 's/^"//' -e 's/"$//')
+
+
+### Container app containing CKAN ####
+az webapp create \
+    --name $webAppNameCkan \
+    --resource-group $resourceGroupName \
+    --plan $appServicePlan \
+    --https-only true \
+    --deployment-container-image-name $dockerImageCkan
+
+# App Settings 
+az webapp config appsettings set \
+  --name $webAppNameCkan \
+  --resource-group $resourceGroupName \
+  --settings \
+    CKAN___API_TOKEN__JWT__DECODE__SECRET="string:CHANGE_ME" \
+    CKAN___API_TOKEN__JWT__ENCODE__SECRET="string:CHANGE_ME" \
+    CKAN___BEAKER__SESSION__SECRET="CHANGE_ME" \
+    CKAN__AUTH__USER_CREATE_ORGANIZATIONS="false" \
+    CKAN__CORS__ORIGIN_WHITELIST="https://$webAppNameCatalogue.azurewebsites.net" \
+    CKAN__HARVEST__MQ__HOSTNAME="$redisName.redis.cache.windows.net" \
+    CKAN__HARVEST__MQ__PASSWORD="$primaryKey" \
+    CKAN__HARVEST__MQ__PORT="6379" \
+    CKAN__HARVEST__MQ__REDIS_DB="1" \
+    CKAN__HARVEST__MQ__TYPE="redis" \
+    CKAN__ROUTE_AFTER_LOGIN="home" \
+    CKAN_DB="$ckanDbName" \
+    CKAN_DB_PASSWORD="$ckandbpassword" \
+    CKAN_DB_USER="ckandbuser" \
+    CKAN_REDIS_URL="rediss://:$primaryKey@$redisName.redis.cache.windows.net:6380" \
+    CKAN_SITE_ID="default" \
+    CKAN_SITE_URL="https://$webAppNameCkan.azurewebsites.net" \
+    CKAN_SMTP_MAIL_FROM="ckan@localhost" \
+    CKAN_SMTP_PASSWORD="pass" \
+    CKAN_SMTP_SERVER="smtp.corporateict.domain:25" \
+    CKAN_SMTP_STARTTLS="True" \
+    CKAN_SMTP_USER="user" \
+    CKAN_SOLR_URL="https://$webAppNameSolr.azurewebsites.net/solr/ckan" \
+    CKAN_SQLALCHEMY_URL="postgresql://$ckandbuser:$ckandbpassword@$serverName.postgres.database.azure.com:5432/$ckanDbName?sslmode=disable" \
+    CKAN_SYSADMIN_EMAIL="your_email@example.com" \
+    CKAN_SYSADMIN_NAME="ckan_admin" \
+    CKAN_SYSADMIN_PASSWORD="test1234" \
+    CKANEXT__OIDC_PKCE__AUTH_PATH="/auth" \
+    CKANEXT__OIDC_PKCE__BASE_URL="https://$keycloakWebAppName.azurewebsites.net/realms/ckan/protocol/openid-connect" \
+    CKANEXT__OIDC_PKCE__CLIENT_ID="ckan" \
+    CKANEXT__OIDC_PKCE__CLIENT_SECRET="4GvwO7Pb8OSwrSV8xoFAimFFhKr9jCAw" \
+    CKANEXT__OIDC_PKCE__ERROR_REDIRECT="/user/register" \
+    CKANEXT__OIDC_PKCE__MUNGE_PASSWORD="true" \
+    CKANEXT__OIDC_PKCE__SCOPE="email openid profile" \
+    CKANEXT__OIDC_PKCE__TOKEN_PATH="/token" \
+    CKANEXT__OIDC_PKCE__USE_SAME_ID="true" \
+    CKANEXT__OIDC_PKCE__USERINFO_PATH="/userinfo" \
+    DOCKER_REGISTRY_SERVER_PASSWORD="$dockerRegistryPassword" \
+    DOCKER_REGISTRY_SERVER_URL="$dockerRegistryUrl" \
+    DOCKER_REGISTRY_SERVER_USERNAME="$dockerRegistryUsername" \
+    POSTGRES_DB="postgres" \
+    POSTGRES_HOST="$serverName.postgres.database.azure.com" \
+    POSTGRES_PASSWORD="$adminPassword" \
+    POSTGRES_USER="$adminUser" \
+    WEBSITE_HTTPLOGGING_RETENTION_DAYS="1" \
+    WEBSITES_CONTAINER_START_TIME_LIMIT=500 \
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE="false"
+
+# Enable Always On
+az webapp config set \
+    --name $webAppNameCkan \
+    --resource-group $resourceGroupName \
+    --always-on true
+
+echo "Wait until all containers are pulled and db migrations are done"
