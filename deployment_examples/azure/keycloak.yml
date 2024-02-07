@@ -10,5 +10,5 @@ services:
       - "8080:8080"
     volumes:
       - ${WEBAPP_STORAGE_HOME}/data:/opt/keycloak/data/
-    restart: always
+    restart: unless-stopped
     command: start --proxy=edge --hostname-strict=false --hostname-strict-https=false

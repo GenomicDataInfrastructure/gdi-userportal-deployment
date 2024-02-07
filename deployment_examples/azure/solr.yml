@@ -1,0 +1,10 @@
+#SPDX-FileCopyrightText: 2024 2024 Stichting Health-RI
+#
+#SPDX-License-Identifier: Apache-2.0
+version: "3"
+services:
+  solr:
+    image:  ckan/ckan-solr:2.10-solr9
+    volumes:
+      - ${WEBAPP_STORAGE_HOME}/solr_data:/var/solr  
+    restart: unless-stopped
