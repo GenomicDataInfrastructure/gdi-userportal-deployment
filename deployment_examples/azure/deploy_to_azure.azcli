@@ -5,19 +5,16 @@
 az login
 echo "Welcome to the script to set up environment in Azure including SOLR, CKAN, Catalogue, Redis and Postgres server"
 read -p "Enter Github username for getting docker images: " dockerRegistryUsername  
-echo  # New line after password input 
-read -sp "Enter Github Personal access(classic) token with package read permissions: " dockerRegistryPassword  
-echo  # New line after password input 
-read -p "Enter the name of your project(GDI, EUCAIM, ..): " nameProject  
-echo  # New line after project input 
+read -sp "Enter Github Personal access(classic) token with package read permissions: " dockerRegistryPassword
+echo  # New line after password input   
+read -p "Enter the name of your project(gdi, eucaim, ..): " nameProject  
 read -p "Enter the name of your environment(dev, test or uac. Or leave it empty for production): " environment 
-echo  # New line after environment input 
-read -p "What is your public ip(IPv4): " publicIp 
-echo  # New line after environment input 
-
-
 
 ## General variables
+if [[ -n $environment ]]; then
+  environment="-${environment}"
+fi
+
 location="westeurope"
 resourceGroupName="$nameProject$environment"
 dockerRegistryUrl="https://ghcr.io"
@@ -36,7 +33,6 @@ appServicePlan="$nameProject$environment"
 
 # Container appp variables solr
 webAppNameSolr="$nameProject-ckan-solr$environment"
-dockerImageSolr="ckan/ckan-solr:2.10-solr9"
 
 # Container app variables keycloak
 keycloakWebAppName="$nameProject-keycloak$environment"
@@ -53,11 +49,11 @@ redisName="$nameProject-ckan$environment"
 
 # Varaibles Catalogue
 webAppNameCatalogue="$nameProject-catalogue$environment"
-dockerImageCatalogue="genomicdatainfrastructure/gdi-userportal-frontend:main"
+dockerImageCatalogue="ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:main"
 
 # Variables CKAN 
 webAppNameCkan="$nameProject-ckan$environment" 
-dockerImageCkan="genomicdatainfrastructure/gdi-userportal-ckan-docker:main"
+dockerImageCkan="ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:main"
 
 # Create Resource Group
 az group create --name $resourceGroupName --location $location
@@ -69,7 +65,7 @@ az postgres flexible-server create \
     --location $location \
     --admin-user $adminUser \
     --admin-password $adminPassword \
-    --public-access 0.0.0.0 \
+    --public-access all \
     --sku-name Standard_B1ms \
     --tier Burstable \
     --version 11
@@ -79,14 +75,6 @@ az postgres flexible-server parameter set \
     --resource-group $resourceGroupName \
     --server-name $serverName \
     --value off
-
-# Add health-RI location
-az postgres flexible-server firewall-rule create \
-    --resource-group $resourceGroupName \
-    --name $serverName  \
-    --rule-name Client-ip \
-    --start-ip-address publicIp \
-    --end-ip-address publicIp
 
 set -e
 psql "host=$serverName.postgres.database.azure.com port=5432 dbname=postgres user=$adminUser password=$adminPassword sslmode=disable" <<-EOSQL
@@ -118,14 +106,14 @@ az webapp create \
     --resource-group $resourceGroupName \
     --https-only true \
     --plan $appServicePlan \
-    --deployment-container-image-name $dockerImageSolr
+    --multicontainer-config-type compose \
+    --multicontainer-config-file solr.yml
 
 echo "Set the configuration settings SOLR"
 az webapp config appsettings set --name $webAppNameSolr --resource-group $resourceGroupName --settings \
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" \
-    DOCKER_REGISTRY_SERVER_PASSWORD="" \
-    DOCKER_REGISTRY_SERVER_URL="https://index.docker.io" \
-    DOCKER_REGISTRY_SERVER_USERNAME=""
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE="true" \
+    DOCKER_REGISTRY_SERVER_URL="https://index.docker.io"
+
 
 ## Container app containing keycloak
 echo "Web app Keycloak"
