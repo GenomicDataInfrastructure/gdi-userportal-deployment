@@ -168,6 +168,7 @@ az redis create \
     --resource-group $resourceGroupName \
     --sku Basic \
     --vm-size C0
+    --enable-non-ssl-port 
 primaryKey=$(az redis list-keys --resource-group $resourceGroupName --name $redisName --query primaryKey 2>&1 | sed -e 's/^"//' -e 's/"$//')
 
 
