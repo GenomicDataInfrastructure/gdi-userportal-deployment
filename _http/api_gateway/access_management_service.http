@@ -1,0 +1,5 @@
+### SPDX-FileCopyrightText: 2024 PNED G.I.E.
+###
+### SPDX-License-Identifier: Apache-2.0
+
+GET http://api.local.onemilliongenomes.eu/daam/v1/applications

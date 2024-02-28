@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2024 PNED G.I.E.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+POST http://api.local.onemilliongenomes.eu/beacon/v2/individuals
+Content-Type: application/json
+
+{
+   "meta":{
+      "apiVersion":"2.0"
+   },
+   "query":{
+      "filters":[
+         {
+            "id":"NCIT:C16352"
+         }
+      ],
+      "includeResultsetResponses":"HIT",
+      "pagination":{
+         "skip":0,
+         "limit":0
+      },
+      "testMode":false,
+      "requestedGranularity":"record"
+   }
+}

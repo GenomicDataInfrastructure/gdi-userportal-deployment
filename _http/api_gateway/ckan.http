@@ -1,0 +1,20 @@
+### SPDX-FileCopyrightText: 2024 PNED G.I.E.
+###
+### SPDX-License-Identifier: Apache-2.0
+
+GET http://api.local.onemilliongenomes.eu/ckan/v3/package_search
+
+###
+GET http://api.local.onemilliongenomes.eu/ckan/v3/dataset_list
+
+###
+GET http://api.local.onemilliongenomes.eu/ckan/v3/keyword_list
+
+###
+GET http://api.local.onemilliongenomes.eu/ckan/v3/theme_list
+
+###
+GET http://api.local.onemilliongenomes.eu/ckan/v3/catalogue_list
+
+###
+GET http://api.local.onemilliongenomes.eu/ckan/v3/publisher_list
