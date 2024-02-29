@@ -3,7 +3,7 @@
 #SPDX-License-Identifier: Apache-2.0
 
 server {
-    server_name  ${REMS_HOSTNAME};
+    server_name  ${DAAM_HOSTNAME};
 
     listen       80;
     listen  [::]:80;
