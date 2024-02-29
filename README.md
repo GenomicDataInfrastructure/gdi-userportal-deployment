@@ -13,7 +13,7 @@ This is a deployment example of all components needed for GDI User Portal, assum
 
 
 > [!IMPORTANT]
-> This repository cannot be used directly for production. Please ensure you have carefully reviewed all requirements, and environmnet variables, and have put all security measurements in place.
+> This repository cannot be used directly for production. Please ensure you have carefully reviewed all requirements and environment variables, for each component, and have put all security measurements in place.
 
 # Preparatory steps on the VM
 ```
