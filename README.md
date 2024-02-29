@@ -9,8 +9,11 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
 # GDI User Portal
-This is a deployment example of the GDI User Portal, assuming a RHEL-based Linux distribution. For REMS, the keys for issuing Visas and passports are included. This cannot be used for production. Follow the instructions here [https://github.com/GenomicDataInfrastructure/starter-kit-rems](https://github.com/GenomicDataInfrastructure/starter-kit-rems) for the complete manual.
+This is a deployment example of all components needed for GDI User Portal, assuming a RHEL-based Linux distribution. For REMS, the keys for issuing Visas and passports are included, follow the instructions here [https://github.com/GenomicDataInfrastructure/starter-kit-rems](https://github.com/GenomicDataInfrastructure/starter-kit-rems) for the complete manual.
 
+
+> [!IMPORTANT]
+> This repository cannot be used directly for production. Please ensure you have carefully reviewed all requirements, and environmnet variables, and have put all security measurements in place.
 
 # Preparatory steps on the VM
 ```
@@ -39,7 +42,7 @@ firewall-cmd --permanent --zone=public --add-port=8443/tcp
 mkdir -p /srv
 cd /srv
 git clone https://github.com/GenomicDataInfrastructure/gdi-userportal-deployment.git
-cd gdi-userportal-ckan-deployment/
+cd gdi-userportal-deployment/
 cp .env.example .env
 ```
 
@@ -60,6 +63,16 @@ docker compose up -d
 # Post configuration
 * Add a new user to CKAN realm and REMS realm in Keycloak
 * Ensure both CKAN and frontend are pointing to the same Keycloak;
+
+## Contributing
+
+We welcome contributions! If you would like to contribute, please follow these steps:
+
+Fork the repository
+Create a new branch for your changes
+Make your changes
+Run the tests to ensure they pass
+Submit a pull request
 
 ## License
 
