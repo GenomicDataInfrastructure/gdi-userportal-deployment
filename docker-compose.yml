@@ -167,12 +167,22 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: ${REMS_DATABASE_URL}
-      AUTHENTICATION: :fake
       PUBLIC_URL: http://${REMS_HOSTNAME}/
+    mem_reservation: 200m
+    mem_limit: 500m
+    volumes:
+      - ./rems/config.edn:/rems/config/config.edn
+      - ./rems/styles.css:/rems/theme/styles.css
+      - ./rems/theme.edn:/rems/theme/theme.edn
+      - ./rems/en.edn:/rems/theme/extra-translations/en.edn
+      - ./rems/logo_medium.png:/rems/theme/public/img/logo_medium.png
+      - ./rems/logo_small.png:/rems/theme/public/img/logo_small.png
+      - ./rems/ls_login.png:/rems/theme/public/img/ls_login.png
+      - ./rems/private-key.jwk:/rems/keys/private-key.jwk
+      - ./rems/public-key.jwk:/rems/keys/public-key.jwk
     depends_on:
-      postgres:
+      keycloak:
         condition: service_healthy
-    ports:
-      - "3000:3000"
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+

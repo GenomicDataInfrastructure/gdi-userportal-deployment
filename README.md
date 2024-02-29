@@ -9,7 +9,8 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
 # GDI User Portal
-This is a deployment example of GDI User Portal, assuming RHEL-based Linux distribution.
+This is a deployment example of the GDI User Portal, assuming a RHEL-based Linux distribution. For REMS, the keys for issuing Visas and passports are included. This cannot be used for production. Follow the instructions here [https://github.com/GenomicDataInfrastructure/starter-kit-rems](https://github.com/GenomicDataInfrastructure/starter-kit-rems) for the complete manual.
+
 
 # Preparatory steps on the VM
 ```
@@ -30,6 +31,8 @@ firewall-cmd --permanent --zone=public --add-port=8443/tcp
 # If you intend to run a reverse proxy on the machine as well, ensure 80/443 are open and nginx is configured to proxy connection to port 8443.
 ```
 
+
+
 # Installation
 ```
 # Prepare the project files
@@ -43,16 +46,19 @@ cp .env.example .env
 # Configuration
 * Check and fill .env values;
 * If you want SSL, configure NGINX templates and add certificates.
+* Check the sample config.edn in the rems folder to check the values in env file 
 
 # Running
 ```
 sudo su
 cd /srv/gdi-userportal-deployment/
-docker compose up -d --build
+docker compose build  
+docker compose run --rm -e CMD="migrate" rems
+docker compose up -d
 ```
 
 # Post configuration
-* Add a new user to CKAN realm in Keycloak;
+* Add a new user to CKAN realm and REMS realm in Keycloak
 * Ensure both CKAN and frontend are pointing to the same Keycloak;
 
 ## License
