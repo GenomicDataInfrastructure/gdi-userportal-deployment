@@ -167,7 +167,7 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: ${REMS_DATABASE_URL}
-      PUBLIC_URL: http://${REMS_HOSTNAME}/
+      PUBLIC_URL: http://${DAAM_HOSTNAME}/
     mem_reservation: 200m
     mem_limit: 500m
     volumes:
