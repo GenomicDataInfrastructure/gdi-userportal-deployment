@@ -168,8 +168,6 @@ services:
       PORT: 3000
       DATABASE_URL: ${REMS_DATABASE_URL}
       PUBLIC_URL: http://${DAAM_HOSTNAME}/
-    mem_reservation: 200m
-    mem_limit: 500m
     volumes:
       - ./rems/config.edn:/rems/config/config.edn
       - ./rems/styles.css:/rems/theme/styles.css
@@ -183,6 +181,7 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+    ports:
+      - "3000:3000"
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
-
