@@ -32,6 +32,9 @@ sudo systemctl enable docker
 # Configure firewall
 firewall-cmd --permanent --zone=public --add-port=8443/tcp
 # If you intend to run a reverse proxy on the machine as well, ensure 80/443 are open and nginx is configured to proxy connection to port 8443.
+
+# Access to GDI Github packages 
+Make sure that the VM has access to GitHub packages. Follow the manual here: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic
 ```
 
 
