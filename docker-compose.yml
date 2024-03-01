@@ -22,8 +22,6 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
-      rems:
-        condition: service_healthy
       kong:
         condition: service_healthy
       ckan:
@@ -179,9 +177,13 @@ services:
       - ./rems/private-key.jwk:/rems/keys/private-key.jwk
       - ./rems/public-key.jwk:/rems/keys/public-key.jwk
     depends_on:
-      keycloak:
+      nginx:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     ports:
       - "3000:3000"
+    extra_hosts:
+      - "id.local.onemilliongenomes.eu:host-gateway"
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]

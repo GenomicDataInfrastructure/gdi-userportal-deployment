@@ -58,7 +58,7 @@ cp .env.example .env
 ```
 sudo su
 cd /srv/gdi-userportal-deployment/
-docker compose build  
+docker compose build
 docker compose run --rm -e CMD="migrate" rems
 docker compose up -d
 ```
