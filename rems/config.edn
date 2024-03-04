@@ -7,7 +7,7 @@
  :database-url "postgresql://postgres:5432/rems?user=rems&password=remspassword"
  :search-index-path "/tmp/rems-search-index"
  :authentication :oidc
- :oidc-metadata-url "http://id.local.onemilliongenomes.eu/realms/rems-idp/.well-known/openid-configuration"
+ :oidc-metadata-url "http://keycloak:8080/realms/rems-idp/.well-known/openid-configuration"
  :oidc-client-id "rems-client"
  :oidc-client-secret "ydZzQ5w73kZQY1wgKHLlGohSLbLip1Bu"
  :oidc-scopes "openid profile email"

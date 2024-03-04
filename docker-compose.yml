@@ -177,7 +177,7 @@ services:
       - ./rems/private-key.jwk:/rems/keys/private-key.jwk
       - ./rems/public-key.jwk:/rems/keys/public-key.jwk
     depends_on:
-      nginx:
+      keycloak:
         condition: service_healthy
       postgres:
         condition: service_healthy
