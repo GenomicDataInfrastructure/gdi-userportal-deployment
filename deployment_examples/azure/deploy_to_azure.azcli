@@ -1,6 +1,7 @@
-#SPDX-FileCopyrightText: 2024 Stichting Health-RI
+# SPDX-FileCopyrightText: 2024 Stichting Health-RI
 #
-#SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileContributor: PNED G.I.E.
 
 az login
 echo "Welcome to the script to set up environment in Azure including SOLR, CKAN, Catalogue, Redis and Postgres server"
@@ -148,11 +149,14 @@ az webapp create \
 
 echo "Set the configuration settings"
 az webapp config appsettings set --name $webAppNameCatalogue --resource-group $resourceGroupName --settings \
-    BACKEND_URL="https://$webAppNameCkan.healthdata.nl" \
-    IDENTITY_SERVER_CLIENT_ID="ckan" \
-    IDENTITY_SERVER_HOST_URL="https://$keycloakWebAppName.azurewebsites.net" \
-    IDENTITY_SERVER_URL="https://$keycloakWebAppName.azurewebsites.net/realms/ckan" \
-    PRODUCTION="true" \
+    CKAN_URL="https://$webAppNameCkan.healthdata.nl" \
+    NEXTAUTH_URL="https://$webAppNameCatalogue.healthdata.nl" \
+    NEXTAUTH_SECRET="your-secret" \
+    KEYCLOAK_CLIENT_ID="ckan" \
+    KEYCLOAK_CLIENT_SECRET="4GvwO7Pb8OSwrSV8xoFAimFFhKr9jCAw" \
+    KEYCLOAK_ISSUER_URL="https://$keycloakWebAppName.azurewebsites.net/realms/ckan" \
+    END_SESSION_URL="https://$keycloakWebAppName.azurewebsites.net/realms/ckan/protocol/openid-connect/logout" \
+    REFRESH_TOKEN_URL="https://$keycloakWebAppName.azurewebsites.net/realms/ckan/protocol/openid-connect/token" \
     WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" \
     DOCKER_REGISTRY_SERVER_PASSWORD=$dockerRegistryPassword \
     DOCKER_REGISTRY_SERVER_URL=$dockerRegistryUrl \
