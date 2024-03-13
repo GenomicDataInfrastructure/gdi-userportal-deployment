@@ -5,21 +5,21 @@
 _format_version: "3.0"
 
 services:
-  - name: beacon-network_v2
-    url: https://beacon-network-backend-demo.ega-archive.org/beacon-network/v2.0.0/
+  - name: beacon-network
+    url: https://beacon-network-backend-demo.ega-archive.org/beacon-network/
     routes:
-      - name: beacon-route_v2
+      - name: beacon-route
         paths:
-          - /beacon/v2/
-  - name: ckan_v3
-    url: http://ckan:5000/api/3/action/
+          - /beacon/
+  - name: ckan
+    url: http://ckan:5000/
     routes:
-      - name: ckan-route_v3
+      - name: ckan-route
         paths:
-          - /ckan/v3/
-  - name: access-management-service_v1
-    url: http://access-management-service:8080/api/v1/
+          - /ckan/
+  - name: access-management-service
+    url: http://access-management-service:8080/
     routes:
-      - name: access-management-service-route_v1
+      - name: access-management-service-route
         paths:
-          - /daam/v1/
+          - /daam/

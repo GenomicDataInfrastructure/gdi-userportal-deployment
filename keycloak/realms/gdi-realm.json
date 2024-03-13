@@ -1,6 +1,6 @@
 {
   "id" : "6f348afb-6f1f-428c-a4f9-5f8e2374a075",
-  "realm" : "ckan",
+  "realm" : "gdi",
   "notBefore" : 0,
   "defaultSignatureAlgorithm" : "RS256",
   "revokeRefreshToken" : false,
@@ -54,7 +54,7 @@
       "attributes" : { }
     }, {
       "id" : "93059c31-b7bc-4d3d-bc95-dc94a5ebb7ad",
-      "name" : "default-roles-ckan",
+      "name" : "default-roles-gdi",
       "description" : "${role_default-roles}",
       "composite" : true,
       "composites" : {
@@ -247,7 +247,7 @@
       "security-admin-console" : [ ],
       "admin-cli" : [ ],
       "account-console" : [ ],
-      "ckan" : [ {
+      "gdi" : [ {
         "id" : "65586c48-97a5-4831-b891-0089ed1cd087",
         "name" : "uma_protection",
         "composite" : false,
@@ -344,7 +344,7 @@
   "groups" : [ ],
   "defaultRole" : {
     "id" : "93059c31-b7bc-4d3d-bc95-dc94a5ebb7ad",
-    "name" : "default-roles-ckan",
+    "name" : "default-roles-gdi",
     "description" : "${role_default-roles}",
     "composite" : true,
     "clientRole" : false,
@@ -382,7 +382,30 @@
   "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister" : false,
   "webAuthnPolicyPasswordlessAcceptableAaguids" : [ ],
   "webAuthnPolicyPasswordlessExtraOrigins" : [ ],
-  "users" : [],
+  "users" : [ {
+    "id" : "52cacbab-c440-4385-9d5f-46aa4930b0e4",
+    "createdTimestamp" : 1703107576892,
+    "username" : "gdi_admin",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "firstName" : "GDI",
+    "lastName" : "Admin",
+    "email" : "your_email@example.com",
+    "credentials" : [ {
+      "id" : "1c2c2caf-4556-479d-853f-9ed3c0ecb017",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1703107588036,
+      "secretData" : "{\"value\":\"urHSmjggWEph066Ed4l6c2qA63fShCx+ny7PA7pAquw=\",\"salt\":\"Zh3X+GfxGoMiZ1dZv3rnPw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-gdi" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
     "roles" : [ "offline_access" ]
@@ -398,12 +421,12 @@
     "clientId" : "account",
     "name" : "${client_account}",
     "rootUrl" : "${authBaseUrl}",
-    "baseUrl" : "/realms/ckan/account/",
+    "baseUrl" : "/realms/gdi/account/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
-    "redirectUris" : [ "/realms/ckan/account/*" ],
+    "redirectUris" : [ "/realms/gdi/account/*" ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -428,12 +451,12 @@
     "clientId" : "account-console",
     "name" : "${client_account-console}",
     "rootUrl" : "${authBaseUrl}",
-    "baseUrl" : "/realms/ckan/account/",
+    "baseUrl" : "/realms/gdi/account/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
-    "redirectUris" : [ "/realms/ckan/account/*" ],
+    "redirectUris" : [ "/realms/gdi/account/*" ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -520,7 +543,7 @@
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "49dfabcd-b980-414c-94a8-fdb65533ad2f",
-    "clientId" : "ckan",
+    "clientId" : "gdi",
     "name" : "",
     "description" : "",
     "rootUrl" : "",
@@ -530,7 +553,7 @@
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
-    "redirectUris" : [ "http://discover.local.onemilliongenomes.eu/*", "http://catalogue.local.onemilliongenomes.eu/*" ],
+    "redirectUris" : [ "http://discover.local.onemilliongenomes.eu/*", "http://catalogue.local.onemilliongenomes.eu/*", "http://daam.local.onemilliongenomes.eu/*", "https://oauth.pstmn.io/v1/callback" ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -546,7 +569,7 @@
       "oidc.ciba.grant.enabled" : "false",
       "client.secret.creation.time" : "1701295297",
       "backchannel.logout.session.required" : "true",
-      "post.logout.redirect.uris" : "http://catalogue.local.onemilliongenomes.eu/*##http://discover.local.onemilliongenomes.eu/*",
+      "post.logout.redirect.uris" : "http://catalogue.local.onemilliongenomes.eu/*##http://discover.local.onemilliongenomes.eu/*##http://daam.local.onemilliongenomes.eu/*##https://oauth.pstmn.io/v1/callback",
       "display.on.consent.screen" : "false",
       "oauth2.device.authorization.grant.enabled" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false"
@@ -632,12 +655,12 @@
     "clientId" : "security-admin-console",
     "name" : "${client_security-admin-console}",
     "rootUrl" : "${authAdminUrl}",
-    "baseUrl" : "/admin/ckan/console/",
+    "baseUrl" : "/admin/gdi/console/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
-    "redirectUris" : [ "/admin/ckan/console/*" ],
+    "redirectUris" : [ "/admin/gdi/console/*" ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
     "bearerOnly" : false,
