@@ -20,16 +20,20 @@ services:
     depends_on:
       frontend:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
       kong:
         condition: service_healthy
       ckan:
+        condition: service_healthy
+      rems:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     environment:
       - ID_HOSTNAME
       - CATALOGUE_HOSTNAME
       - DISCOVER_HOSTNAME
+      - API_HOSTNAME
+      - DAAM_HOSTNAME
     ports:
       - 80:80
 
@@ -40,12 +44,20 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      - BACKEND_URL
-      - IDENTITY_SERVER_URL
-      - IDENTITY_SERVER_HOST_URL
-      - IDENTITY_SERVER_CLIENT_ID
+      - CKAN_URL
+      - NEXTAUTH_URL
+      - NEXTAUTH_SECRET
+      - KEYCLOAK_CLIENT_ID
+      - KEYCLOAK_CLIENT_SECRET
+      - KEYCLOAK_ISSUER_URL
+      - END_SESSION_URL
+      - REFRESH_TOKEN_URL
+      - DAAM_URL
     healthcheck:
-      test: ["CMD", "service", "nginx", "status"]
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+    extra_hosts:
+      - "id.local.onemilliongenomes.eu:host-gateway"
+      - "api.local.onemilliongenomes.eu:host-gateway"
 
   ckan:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
@@ -118,6 +130,7 @@ services:
       - KEYCLOAK_ADMIN
       - KEYCLOAK_ADMIN_PASSWORD
       - KC_HOSTNAME
+      - KC_HOSTNAME_PORT
     volumes:
       - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
@@ -140,10 +153,6 @@ services:
       KONG_ADMIN_GUI_PATH: /manager
       KONG_ADMIN_GUI_URL: http://localhost:8002/manager
       KONG_PLUGINS: bundled
-    ports:
-      - "8000:8000"
-      - "8001:8001"
-      - "8002:8002"
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 1s
@@ -155,10 +164,21 @@ services:
   access-management-service:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-access-management-service:${ACCESS_MANAGEMENT_SERVICE_IMAGE_VERSION}
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    environment:
+      - QUARKUS_OIDC_AUTH_SERVER_URL
+      - QUARKUS_OIDC_CLIENT_ID
+      - QUARKUS_OIDC_CREDENTIALS_SECRET
+      - QUARKUS_REST_CLIENT_REMS_YAML_API_KEY
+      - QUARKUS_REST_CLIENT_REMS_YAML_BOT_USER
+      - QUARKUS_REST_CLIENT_REMS_YAML_URL
+    depends_on:
+      keycloak:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/q/health"]
+    extra_hosts:
+      - "id.local.onemilliongenomes.eu:host-gateway"
+      - "daam.local.onemilliongenomes.eu:host-gateway"
 
   rems:
     image: cscfi/rems:${REMS_IMAGE_VERSION}
@@ -166,6 +186,9 @@ services:
       PORT: 3000
       DATABASE_URL: ${REMS_DATABASE_URL}
       PUBLIC_URL: http://${DAAM_HOSTNAME}/
+      OIDC_METADATA_URL: ${REMS_OIDC_METADATA_URL}
+      OIDC_CLIENT_ID: ${REMS_OIDC_CLIENT_ID}
+      OIDC_CLIENT_SECRET: ${REMS_OIDC_CLIENT_SECRET}
     volumes:
       - ./rems/config.edn:/rems/config/config.edn
       - ./rems/styles.css:/rems/theme/styles.css
@@ -181,8 +204,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    ports:
-      - "3000:3000"
     extra_hosts:
       - "id.local.onemilliongenomes.eu:host-gateway"
     healthcheck:

@@ -37,8 +37,6 @@ firewall-cmd --permanent --zone=public --add-port=8443/tcp
 Make sure that the VM has access to GitHub packages. Follow the manual here: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic
 ```
 
-
-
 # Installation
 ```
 # Prepare the project files
@@ -59,7 +57,7 @@ cp .env.example .env
 sudo su
 cd /srv/gdi-userportal-deployment/
 docker compose build
-docker compose run --rm -e CMD="migrate" rems
+docker compose run --rm -e CMD="migrate;test-data" rems
 docker compose up -d
 ```
 

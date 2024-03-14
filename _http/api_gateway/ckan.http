@@ -2,19 +2,19 @@
 ###
 ### SPDX-License-Identifier: Apache-2.0
 
-GET http://api.local.onemilliongenomes.eu/ckan/v3/package_search
+GET http://api.local.onemilliongenomes.eu/ckan/api/3/action/package_search?start=0&rows=5
 
 ###
-GET http://api.local.onemilliongenomes.eu/ckan/v3/dataset_list
+GET http://api.local.onemilliongenomes.eu/ckan/api/3/action/dataset_list
 
 ###
-GET http://api.local.onemilliongenomes.eu/ckan/v3/keyword_list
+GET http://api.local.onemilliongenomes.eu/ckan/api/3/action/keyword_list
 
 ###
-GET http://api.local.onemilliongenomes.eu/ckan/v3/theme_list
+GET http://api.local.onemilliongenomes.eu/ckan/api/3/action/theme_list
 
 ###
-GET http://api.local.onemilliongenomes.eu/ckan/v3/catalogue_list
+GET http://api.local.onemilliongenomes.eu/ckan/api/3/action/catalogue_list
 
 ###
-GET http://api.local.onemilliongenomes.eu/ckan/v3/publisher_list
+GET http://api.local.onemilliongenomes.eu/ckan/api/3/action/publisher_list

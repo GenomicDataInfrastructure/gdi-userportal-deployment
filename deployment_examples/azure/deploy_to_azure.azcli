@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Stichting Health-RI
 #
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileContributor: PNED G.I.E.
 
 az login
 echo "Welcome to the script to set up environment in Azure including SOLR, CKAN, Catalogue, Redis and Postgres server"

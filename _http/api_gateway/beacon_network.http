@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-POST http://api.local.onemilliongenomes.eu/beacon/v2/individuals
+POST http://api.local.onemilliongenomes.eu/beacon/v2.0.0/individuals
 Content-Type: application/json
 
 {
