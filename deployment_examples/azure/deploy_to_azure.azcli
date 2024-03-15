@@ -148,7 +148,7 @@ az webapp create \
 
 echo "Set the configuration settings"
 az webapp config appsettings set --name $webAppNameCatalogue --resource-group $resourceGroupName --settings \
-    CKAN_URL="https://$webAppNameCkan.healthdata.nl" \
+    NEXT_PUBLIC_CKAN_URL="https://$webAppNameCkan.healthdata.nl" \
     NEXTAUTH_URL="https://$webAppNameCatalogue.healthdata.nl" \
     NEXTAUTH_SECRET="your-secret" \
     KEYCLOAK_CLIENT_ID="ckan" \
