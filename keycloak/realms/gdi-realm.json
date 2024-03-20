@@ -1178,7 +1178,44 @@
   "enabledEventTypes" : [ ],
   "adminEventsEnabled" : false,
   "adminEventsDetailsEnabled" : false,
-  "identityProviders" : [ ],
+  "identityProviders" : [
+    {
+      "alias": "LSAAI",
+      "displayName": "",
+      "internalId": "dbb1cc58-03fc-4884-871f-737d7778caa0",
+      "providerId": "oidc",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "validateSignature": "false",
+        "hideOnLoginPage": "false",
+        "tokenUrl": "https://login.elixir-czech.org/oidc/token",
+        "acceptsPromptNoneForwardFromClient": "false",
+        "clientId": "2d61a232-bb61-4844-a69c-53df3c169763",
+        "uiLocales": "false",
+        "isAccessTokenJWT": "false",
+        "filteredByClaim": "false",
+        "backchannelSupported": "false",
+        "disableNonce": "false",
+        "loginHint": "false",
+        "pkceEnabled": "false",
+        "clientAuthMethod": "client_secret_post",
+        "authorizationUrl": "https://login.elixir-czech.org/oidc/authorize",
+        "disableUserInfo": "false",
+        "syncMode": "FORCE",
+        "clientSecret": "**********",
+        "passMaxAge": "false",
+        "allowedClockSkew": "0",
+        "defaultScope": "openid profile email"
+      }
+    }
+  ],
   "identityProviderMappers" : [ ],
   "components" : {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy" : [ {
