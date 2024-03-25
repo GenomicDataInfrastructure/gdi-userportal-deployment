@@ -45,6 +45,7 @@ services:
     restart: unless-stopped
     environment:
       - NEXT_PUBLIC_CKAN_URL
+      - NEXT_PUBLIC_DAAM_URL
       - NEXTAUTH_URL
       - NEXTAUTH_SECRET
       - KEYCLOAK_CLIENT_ID
@@ -52,9 +53,9 @@ services:
       - KEYCLOAK_ISSUER_URL
       - END_SESSION_URL
       - REFRESH_TOKEN_URL
-      - NEXT_PUBLIC_DAAM_URL
     healthcheck:
-      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+      test:
+        ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
     extra_hosts:
       - "id.local.onemilliongenomes.eu:host-gateway"
       - "api.local.onemilliongenomes.eu:host-gateway"
@@ -100,7 +101,8 @@ services:
       - pg_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      test:
+        ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
     image: ckan/ckan-solr:${SOLR_IMAGE_VERSION}
@@ -134,7 +136,8 @@ services:
     volumes:
       - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
-      test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/health/ready"]
+      test:
+        ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/health/ready"]
 
   kong:
     image: kong/kong-gateway:${KONG_IMAGE_VERSION}
@@ -207,4 +210,5 @@ services:
     extra_hosts:
       - "id.local.onemilliongenomes.eu:host-gateway"
     healthcheck:
-      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+      test:
+        ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
