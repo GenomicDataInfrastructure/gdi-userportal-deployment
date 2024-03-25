@@ -44,7 +44,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      - NEXT_PUBLIC_NEXT_PUBLIC_CKAN_URL
+      - NEXT_PUBLIC_CKAN_URL
       - NEXTAUTH_URL
       - NEXTAUTH_SECRET
       - KEYCLOAK_CLIENT_ID
@@ -52,7 +52,7 @@ services:
       - KEYCLOAK_ISSUER_URL
       - END_SESSION_URL
       - REFRESH_TOKEN_URL
-      - DAAM_URL
+      - NEXT_PUBLIC_DAAM_URL
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
     extra_hosts:
