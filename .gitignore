@@ -13,3 +13,5 @@ _src/*
 local/*
 .env
 venv
+
+__pycache__
