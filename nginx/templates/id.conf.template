@@ -8,20 +8,18 @@ server {
     listen       80;
     listen  [::]:80;
 
+    set_real_ip_from 0.0.0.0/0;
+    real_ip_header X-Real-IP;
+    real_ip_recursive on;
+
     location / {
         proxy_pass http://keycloak:8080;
+
+        proxy_redirect off;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 413 414 415 416 417 418 421 422 423 424 425 426 428 429 431 451 500 501 502 503 504 505 506 507 508 510 511 /error.html;
-
-    # redirect server error pages to the static page /error.html
-    #
-    location = /error.html {
-      ssi on;
-      internal;
-      auth_basic off;
-      root /usr/share/nginx/html;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port 80;
     }
 }
