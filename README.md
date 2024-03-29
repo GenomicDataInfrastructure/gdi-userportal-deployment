@@ -63,7 +63,7 @@ docker compose up -d
 If you want to test locally with another domain, you can generated a new self-signed certificate with the following command:
 
 ```bash
-openssl req -nodes -new -x509 -keyout ./nginx/ssl/server.key -out ./nginx/ssl/local.onemilliongenomes.eu.cert -days 2000 -subj "/CN=*.local.onemilliongenomes.eu"
+openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout ./nginx/ssl/server.key -out ./nginx/ssl/server.crt -config ./nginx/ssl/openssl.cnf
 ```
 
 # Post configuration
