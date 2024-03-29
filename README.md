@@ -48,17 +48,22 @@ cp .env.example .env
 ```
 
 # Configuration
-* Check and fill .env values;
-* If you want SSL, configure NGINX templates and add certificates.
-* Check the sample config.edn in the rems folder to check the values in env file 
+* Check and replace sensitive values in `.env`;
+* Replace NGINX SSL certificates.
 
 # Running
-```
+```bash
 sudo su
 cd /srv/gdi-userportal-deployment/
 docker compose build
 docker compose run --rm -e CMD="migrate;test-data" rems
 docker compose up -d
+```
+
+If you want to test locally with another domain, you can generated a new self-signed certificate with the following command:
+
+```bash
+openssl req -nodes -new -x509 -keyout ./nginx/ssl/server.key -out ./nginx/ssl/local.onemilliongenomes.eu.cert -days 2000 -subj "/CN=*.local.onemilliongenomes.eu"
 ```
 
 # Post configuration

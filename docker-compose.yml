@@ -36,6 +36,7 @@ services:
       - DAAM_HOSTNAME
     ports:
       - 80:80
+      - 443:443
 
   frontend:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:${FRONTEND_IMAGE_VERSION}
@@ -53,9 +54,12 @@ services:
       - KEYCLOAK_ISSUER_URL
       - END_SESSION_URL
       - REFRESH_TOKEN_URL
+      - NODE_EXTRA_CA_CERTS
     healthcheck:
       test:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+    volumes:
+      - ./nginx/ssl:/srv/app/ssl:ro
     extra_hosts:
       - "${ID_HOSTNAME}:host-gateway"
       - "${API_HOSTNAME}:host-gateway"
@@ -75,6 +79,16 @@ services:
         condition: service_healthy
     volumes:
       - ckan_storage:/var/lib/ckan
+      - ./nginx/ssl:/srv/app/ssl:ro
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
@@ -109,6 +123,15 @@ services:
     volumes:
       - solr_data:/var/solr
     restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
 
