@@ -57,8 +57,8 @@ services:
       test:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
     extra_hosts:
-      - "id.local.onemilliongenomes.eu:host-gateway"
-      - "api.local.onemilliongenomes.eu:host-gateway"
+      - "${ID_HOSTNAME}:host-gateway"
+      - "${API_HOSTNAME}:host-gateway"
 
   ckan:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
@@ -79,7 +79,7 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
     extra_hosts:
-      - "id.local.onemilliongenomes.eu:host-gateway"
+      - "${ID_HOSTNAME}:host-gateway"
 
   postgres:
     build:
@@ -181,9 +181,6 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/q/health"]
-    extra_hosts:
-      - "id.local.onemilliongenomes.eu:host-gateway"
-      - "daam.local.onemilliongenomes.eu:host-gateway"
 
   rems:
     image: cscfi/rems:${REMS_IMAGE_VERSION}
@@ -209,8 +206,20 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    extra_hosts:
-      - "id.local.onemilliongenomes.eu:host-gateway"
     healthcheck:
       test:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+
+  synchronizer:
+    build:
+      context: synchronizer/
+    depends_on:
+      rems:
+        condition: service_healthy
+      ckan:
+        condition: service_healthy
+    environment:
+      REMS_URL: "http://rems:3000"
+      CKAN_URL: "http://ckan:5000"
+      REMS_API_KEY: ${REMS_API_KEY}
+      REMS_BOT_USER: ${REMS_BOT_USER}
