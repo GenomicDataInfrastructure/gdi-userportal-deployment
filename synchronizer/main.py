@@ -12,7 +12,9 @@ from rems import (
 )
 import os
 
-ckan_base_url = os.environ.get("CKAN_URL", "https://ckan-test.healthdata.nl")
+ckan_base_url = os.environ.get(
+    "CKAN_URL", "https://catalogue.local.onemilliongenomes.eu"
+)
 print(f"CKAN base url: {ckan_base_url}")
 rems_base_url = os.environ.get("REMS_URL", "https://daam.local.onemilliongenomes.eu")
 print(f"REMS base url: {rems_base_url}")

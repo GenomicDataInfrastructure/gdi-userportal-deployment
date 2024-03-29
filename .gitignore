@@ -15,3 +15,5 @@ local/*
 venv
 
 __pycache__
+
+.vscode

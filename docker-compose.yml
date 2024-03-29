@@ -246,3 +246,6 @@ services:
       CKAN_URL: "http://ckan:5000"
       REMS_API_KEY: ${REMS_API_KEY}
       REMS_BOT_USER: ${REMS_BOT_USER}
+      REQUESTS_CA_BUNDLE: ${REQUESTS_CA_BUNDLE}
+    volumes:
+      - ./nginx/ssl:/srv/app/ssl:ro
