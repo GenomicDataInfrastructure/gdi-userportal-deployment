@@ -119,7 +119,7 @@ services:
         ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
-    image: ckan/ckan-solr:${SOLR_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:${SOLR_IMAGE_VERSION}
     volumes:
       - solr_data:/var/solr
     restart: unless-stopped
