@@ -5,12 +5,6 @@
 _format_version: "3.0"
 
 services:
-  - name: beacon-network
-    url: https://beacon-network-backend-demo.ega-archive.org/beacon-network/
-    routes:
-      - name: beacon-route
-        paths:
-          - /beacon/
   - name: ckan
     url: http://ckan:5000/
     routes:
@@ -23,3 +17,9 @@ services:
       - name: access-management-service-route
         paths:
           - /daam/
+  - name: dataset-discovery-service
+    url: http://dataset-discovery-service:8080/
+    routes:
+      - name: dataset-discovery-service-route
+        paths:
+          - /discovery/
