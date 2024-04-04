@@ -249,3 +249,18 @@ services:
       REQUESTS_CA_BUNDLE: ${REQUESTS_CA_BUNDLE}
     volumes:
       - ./nginx/ssl:/srv/app/ssl:ro
+
+  dataset-discovery-service:
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-dataset-discovery-service:${DATASET_DISCOVERY_SERVICE_IMAGE_VERSION}
+    restart: unless-stopped
+    environment:
+      - QUARKUS_OIDC_AUTH_SERVER_URL
+      - QUARKUS_OIDC_CLIENT_ID
+      - QUARKUS_OIDC_CREDENTIALS_SECRET
+      - QUARKUS_REST_CLIENT_CKAN_YAML_URL
+      - QUARKUS_REST_CLIENT_BEACON_YAML_URL
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/q/health"]
