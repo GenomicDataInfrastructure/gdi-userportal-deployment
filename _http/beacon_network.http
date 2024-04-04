@@ -12,7 +12,8 @@ Content-Type: application/json
    "query":{
       "filters":[
          {
-            "id":"NCIT:C16352"
+            "id":"NCIT:C16352",
+            "scope": "individual"
          }
       ],
       "includeResultsetResponses":"HIT",
@@ -21,6 +22,9 @@ Content-Type: application/json
          "limit":0
       },
       "testMode":false,
-      "requestedGranularity":"record"
+      "requestedGranularity":"count"
    }
 }
+
+###
+GET https://beacon-network-backend-demo.ega-archive.org/beacon-network/v2.0.0/filtering_terms
