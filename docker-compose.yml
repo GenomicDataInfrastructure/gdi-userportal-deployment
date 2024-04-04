@@ -158,6 +158,9 @@ services:
       - KC_HOSTNAME_STRICT_HTTPS
       - KC_PROXY_HEADERS
       - KC_HOSTNAME_URL
+      - KC_HOSTNAME_ADMIN_URL
+      - KC_HTTP_ENABLED
+      - KC_HOSTNAME_DEBUG
     volumes:
       - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
