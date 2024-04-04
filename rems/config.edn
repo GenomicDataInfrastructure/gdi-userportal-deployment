@@ -22,3 +22,5 @@
  :extra-stylesheets {:root "./" :files ["/theme/styles.css"]}
  :theme-path "/rems/theme/theme.edn"
  :extra-pages-path "/rems/extra-pages"}
+ :enable-voting true 
+ :enable-processing-states true
