@@ -13,10 +13,10 @@ from rems import (
 import os
 
 ckan_base_url = os.environ.get(
-    "CKAN_URL", "https://catalogue.local.onemilliongenomes.eu"
+    "CKAN_URL", "http://catalogue.local.onemilliongenomes.eu"
 )
 print(f"CKAN base url: {ckan_base_url}")
-rems_base_url = os.environ.get("REMS_URL", "https://daam.local.onemilliongenomes.eu")
+rems_base_url = os.environ.get("REMS_URL", "http://daam.local.onemilliongenomes.eu")
 print(f"REMS base url: {rems_base_url}")
 rems_api_key = os.environ.get("REMS_API_KEY", "42")
 print(f"REMS api key: **********")

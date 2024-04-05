@@ -2,19 +2,4 @@
 ###
 ### SPDX-License-Identifier: Apache-2.0
 
-GET http://catalogue.local.onemilliongenomes.eu/api/3/action/package_search
-
-###
-GET http://catalogue.local.onemilliongenomes.eu/api/3/action/dataset_list
-
-###
-GET http://catalogue.local.onemilliongenomes.eu/api/3/action/keyword_list
-
-###
-GET http://catalogue.local.onemilliongenomes.eu/api/3/action/theme_list
-
-###
-GET http://catalogue.local.onemilliongenomes.eu/api/3/action/catalogue_list
-
-###
-GET http://catalogue.local.onemilliongenomes.eu/api/3/action/publisher_list
+GET http://catalogue.local.onemilliongenomes.eu/api/3/action/package_search?facet.field=["organization","theme","conforms_to","has_version","access_rights","language","publisher_name","res_format","provenance"]&rows=10

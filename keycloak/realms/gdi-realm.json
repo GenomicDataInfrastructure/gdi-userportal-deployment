@@ -705,9 +705,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "https://discover.local.onemilliongenomes.eu/*",
-        "https://catalogue.local.onemilliongenomes.eu/*",
-        "https://daam.local.onemilliongenomes.eu/*",
+        "http://discover.local.onemilliongenomes.eu/*",
+        "http://catalogue.local.onemilliongenomes.eu/*",
+        "http://daam.local.onemilliongenomes.eu/*",
         "https://oauth.pstmn.io/v1/callback"
       ],
       "webOrigins": [
@@ -727,7 +727,7 @@
         "oidc.ciba.grant.enabled": "false",
         "client.secret.creation.time": "1701295297",
         "backchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "https://catalogue.local.onemilliongenomes.eu/*##https://discover.local.onemilliongenomes.eu/*##https://daam.local.onemilliongenomes.eu/*##https://oauth.pstmn.io/v1/callback",
+        "post.logout.redirect.uris": "http://catalogue.local.onemilliongenomes.eu/*##http://discover.local.onemilliongenomes.eu/*##http://daam.local.onemilliongenomes.eu/*##https://oauth.pstmn.io/v1/callback",
         "display.on.consent.screen": "false",
         "oauth2.device.authorization.grant.enabled": "false",
         "backchannel.logout.revoke.offline.tokens": "false"
