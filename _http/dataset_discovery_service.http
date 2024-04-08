@@ -1,0 +1,27 @@
+### SPDX-FileCopyrightText: 2024 PNED G.I.E.
+###
+### SPDX-License-Identifier: Apache-2.0
+
+POST http://api.local.onemilliongenomes.eu/discovery/api/v1/datasets/search
+Content-Type: application/json
+
+{
+    "query": "COVID",
+    "facets": [{
+        "facetGroup": "ckan",
+        "facet": "theme",
+        "value": "http://purl.bioontology.org/ontology/ICD10CM/U07.1"
+    }, {
+        "facetGroup": "ckan",
+        "facet": "theme",
+        "value": "http://purl.org/zonmw/covid19/10003"
+    }, {
+        "facetGroup": "ckan",
+        "facet": "tags",
+        "value": "COVID-19"
+    }]
+}
+
+###
+GET http://api.local.onemilliongenomes.eu/discovery/api/v1/datasets/9f521cb3-db9e-4f6e-957f-d671d268993f
+
