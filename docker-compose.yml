@@ -202,6 +202,7 @@ services:
       - QUARKUS_REST_CLIENT_REMS_YAML_API_KEY
       - QUARKUS_REST_CLIENT_REMS_YAML_BOT_USER
       - QUARKUS_REST_CLIENT_REMS_YAML_URL
+      - QUARKUS_LOG_LEVEL
     depends_on:
       keycloak:
         condition: service_healthy
@@ -265,6 +266,7 @@ services:
       - QUARKUS_REST_CLIENT_BEACON_YAML_URL
       - QUARKUS_REST_CLIENT_KEYCLOAK_YAML_URL
       - QUARKUS_REST_CLIENT_KEYCLOAK_YAML_BEACON_IDP_ALIAS
+      - QUARKUS_LOG_LEVEL
     depends_on:
       keycloak:
         condition: service_healthy
