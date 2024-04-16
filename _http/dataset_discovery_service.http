@@ -14,7 +14,7 @@ Content-Type: application/json
     }, {
         "facetGroup": "ckan",
         "facet": "theme",
-        "value": "http://purl.org/zonmw/covid19/10003"
+        "value": "http://purl.org/zonmw/covid19/10006"
     }, {
         "facetGroup": "ckan",
         "facet": "tags",

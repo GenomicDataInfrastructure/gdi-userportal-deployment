@@ -264,6 +264,7 @@ services:
       - QUARKUS_REST_CLIENT_CKAN_YAML_URL
       - QUARKUS_REST_CLIENT_BEACON_YAML_URL
       - QUARKUS_REST_CLIENT_KEYCLOAK_YAML_URL
+      - QUARKUS_REST_CLIENT_KEYCLOAK_YAML_BEACON_IDP_ALIAS
     depends_on:
       keycloak:
         condition: service_healthy
