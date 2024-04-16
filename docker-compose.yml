@@ -44,7 +44,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      - NEXT_PUBLIC_CKAN_URL
+      - NEXT_PUBLIC_DDS_URL
       - NEXT_PUBLIC_DAAM_URL
       - NEXTAUTH_URL
       - NEXTAUTH_SECRET
