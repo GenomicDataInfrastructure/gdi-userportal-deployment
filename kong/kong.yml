@@ -5,12 +5,6 @@
 _format_version: "3.0"
 
 services:
-  - name: ckan
-    url: http://ckan:5000/
-    routes:
-      - name: ckan-route
-        paths:
-          - /ckan/
   - name: access-management-service
     url: http://access-management-service:8080/
     routes:
