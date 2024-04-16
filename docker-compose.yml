@@ -56,9 +56,6 @@ services:
     healthcheck:
       test:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
-    extra_hosts:
-      - "${ID_HOSTNAME}:host-gateway"
-      - "${API_HOSTNAME}:host-gateway"
 
   ckan:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
