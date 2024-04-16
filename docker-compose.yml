@@ -87,8 +87,7 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
-    extra_hosts:
-      - "${ID_HOSTNAME}:host-gateway"
+    
 
   postgres:
     build:
