@@ -48,7 +48,9 @@ print(f"packages found: {count}")
 while start < count:
     packages = get_packages(start, rows, ckan_base_url)
     for package in packages:
-        dataset_id = package["id"]
+        if "identifier" not in package or package["identifier"] is None:
+            continue
+        dataset_id = package["identifier"]
         dataset_title = package["title"]
         resource_id = create_or_return_resource_in_rems(
             organization_id, dataset_id, rems_base_url, headers
