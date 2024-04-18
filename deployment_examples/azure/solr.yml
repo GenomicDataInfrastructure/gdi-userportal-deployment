@@ -4,7 +4,7 @@
 version: "3"
 services:
   solr:
-    image: ghcr.io.v2/genomicdatainfrastructure/gdi-userportal-solr:1.1
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:1.1.2
     volumes:
       - ${WEBAPP_STORAGE_HOME}/solr_data:/var/solr
     restart: unless-stopped
