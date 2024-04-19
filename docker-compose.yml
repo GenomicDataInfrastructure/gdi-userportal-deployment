@@ -236,8 +236,7 @@ services:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
 
   synchronizer:
-    build:
-      context: synchronizer/
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-rems-synchronizer:main
     depends_on:
       rems:
         condition: service_healthy
