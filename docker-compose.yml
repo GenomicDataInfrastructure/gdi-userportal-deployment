@@ -53,6 +53,7 @@ services:
       - KEYCLOAK_ISSUER_URL
       - END_SESSION_URL
       - REFRESH_TOKEN_URL
+      - CSP_HEADER
     healthcheck:
       test:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
