@@ -785,6 +785,7 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
+        "elixir_id",
         "profile",
         "roles",
         "email"
@@ -1197,6 +1198,36 @@
       ]
     },
     {
+      "id": "bb63fc7c-63cb-4b73-b607-497727b563f2",
+      "name": "elixir_id",
+      "description": "Elixer Id",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "gui.order": "",
+        "consent.screen.text": ""
+      },
+      "protocolMappers": [
+        {
+          "id": "8520db0d-2eb0-4c15-8d51-9e5031cc7ab0",
+          "name": "Elixir ID mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "elixir_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "elixir_id",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
       "id": "ae433992-c6a6-46ed-89a5-75899f4edc99",
       "name": "microprofile-jwt",
       "description": "Microprofile - JWT built-in scope",
@@ -1481,7 +1512,19 @@
       }
     }
   ],
-  "identityProviderMappers": [],
+  "identityProviderMappers": [
+    {
+      "id": "861afd67-8f5f-4f35-b278-31108f8ecf63",
+      "name": "Elixir_ID",
+      "identityProviderAlias": "LSAAI",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "syncMode": "FORCE",
+        "claim": "sub",
+        "user.attribute": "elixir_id"
+      }
+    }
+  ],
   "components": {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy": [
       {
@@ -1492,14 +1535,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-address-mapper",
-            "saml-user-property-mapper",
             "saml-user-attribute-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
             "oidc-full-name-mapper",
-            "oidc-usermodel-attribute-mapper",
             "saml-role-list-mapper",
+            "oidc-usermodel-attribute-mapper",
             "oidc-usermodel-property-mapper",
-            "oidc-sha256-pairwise-sub-mapper"
+            "oidc-address-mapper",
+            "saml-user-property-mapper"
           ]
         }
       },
@@ -1558,14 +1601,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-sha256-pairwise-sub-mapper",
-            "oidc-usermodel-property-mapper",
+            "oidc-address-mapper",
             "saml-user-attribute-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
+            "saml-role-list-mapper",
             "saml-user-property-mapper",
             "oidc-full-name-mapper",
             "oidc-usermodel-attribute-mapper",
-            "saml-role-list-mapper",
-            "oidc-address-mapper"
+            "oidc-usermodel-property-mapper"
           ]
         }
       },
