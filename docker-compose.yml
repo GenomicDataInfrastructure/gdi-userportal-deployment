@@ -28,6 +28,7 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+    restart: unless-stopped
     environment:
       - ID_HOSTNAME
       - CATALOGUE_HOSTNAME
