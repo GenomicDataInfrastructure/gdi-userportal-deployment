@@ -3,6 +3,18 @@
 ; SPDX-License-Identifier: Apache-2.0
 
 {:port 3000
+ 
+  ;; Sending email.
+ :smtp-host smtp.uni.lu
+ :smtp-port 25
+ ;; Other email parameters (in addition to the above):
+ :smtp-connectiontimeout 5000 ; milliseconds waiting for connection
+ :smtp-timeout 10000 ; milliseconds waiting for processing
+ :smtp-writetimeout 10000 ; milliseconds waiting for writes
+ :smtp-debug true ; print detailed debug
+ :mail-from admin@gdi.lu
+ :email-retry-period "P3D" ;; in ISO 8601 duration format https://en.wikipedia.org/wiki/ISO_8601#Durations
+ 
  :search-index-path "/tmp/rems-search-index"
  :authentication :oidc
  :oidc-scopes "openid profile email"
