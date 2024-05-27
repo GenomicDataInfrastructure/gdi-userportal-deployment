@@ -12,7 +12,7 @@
  :smtp-timeout 10000 ; milliseconds waiting for processing
  :smtp-writetimeout 10000 ; milliseconds waiting for writes
  :smtp-debug true ; print detailed debug
- :mail-from "admin@gdi.lu"
+ :mail-from "gdi-noreply@uni.lu"
  :email-retry-period "P3D" ;; in ISO 8601 duration format https://en.wikipedia.org/wiki/ISO_8601#Durations
  
  :search-index-path "/tmp/rems-search-index"
