@@ -39,7 +39,7 @@ services:
       - 80:80
 
   frontend:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:${FRONTEND_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:1.2.0
     depends_on:
       kong:
         condition: service_healthy
@@ -60,7 +60,7 @@ services:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
 
   ckan:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:1.2.1
     env_file:
       - .env
     depends_on:
@@ -112,7 +112,7 @@ services:
         ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:${SOLR_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:1.2.3
     volumes:
       - solr_data:/var/solr
     restart: unless-stopped
@@ -188,7 +188,7 @@ services:
       - ./kong/kong.yml:/etc/kong/kong.yml
 
   access-management-service:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-access-management-service:${ACCESS_MANAGEMENT_SERVICE_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-access-management-service:1.2.1
     restart: unless-stopped
     environment:
       - QUARKUS_OIDC_AUTH_SERVER_URL
@@ -250,7 +250,7 @@ services:
       REMS_BOT_USER: ${REMS_BOT_USER}
 
   dataset-discovery-service:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-dataset-discovery-service:${DATASET_DISCOVERY_SERVICE_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-dataset-discovery-service:1.2.1
     restart: unless-stopped
     environment:
       - QUARKUS_OIDC_AUTH_SERVER_URL
