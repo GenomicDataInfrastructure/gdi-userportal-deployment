@@ -29,12 +29,8 @@ services:
       keycloak:
         condition: service_healthy
     restart: unless-stopped
-    environment:
-      - ID_HOSTNAME
-      - CATALOGUE_HOSTNAME
-      - DISCOVER_HOSTNAME
-      - API_HOSTNAME
-      - DAAM_HOSTNAME
+    env_file:
+      - .env
     ports:
       - 80:80
 
@@ -44,17 +40,9 @@ services:
       kong:
         condition: service_healthy
     restart: unless-stopped
-    environment:
-      - NEXT_PUBLIC_DDS_URL
-      - NEXT_PUBLIC_DAAM_URL
-      - NEXTAUTH_URL
-      - NEXTAUTH_SECRET
-      - KEYCLOAK_CLIENT_ID
-      - KEYCLOAK_CLIENT_SECRET
-      - KEYCLOAK_ISSUER_URL
-      - END_SESSION_URL
-      - REFRESH_TOKEN_URL
-      - CSP_HEADER
+    env_file:
+      - .env
+      - .env.secrets
     healthcheck:
       test:
         ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
@@ -91,19 +79,9 @@ services:
   postgres:
     build:
       context: postgresql/
-    environment:
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_DB
-      - CKAN_DB_USER
-      - CKAN_DB_PASSWORD
-      - CKAN_DB
-      - KC_DB_USERNAME
-      - KC_DB_PASSWORD
-      - KC_DB_NAME
-      - REMS_DB_USER
-      - REMS_DB_PASSWORD
-      - REMS_DB
+    env_file:
+      - .env
+      - .env.secrets
     volumes:
       - pg_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -141,18 +119,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      - KC_DB_URL
-      - KC_DB_USERNAME
-      - KC_DB_PASSWORD
-      - KEYCLOAK_ADMIN
-      - KEYCLOAK_ADMIN_PASSWORD
-      - KC_HOSTNAME_STRICT
-      - KC_HOSTNAME_STRICT_HTTPS
-      - KC_PROXY_HEADERS
-      - KC_HOSTNAME_URL
-      - KC_HOSTNAME_ADMIN_URL
-      - KC_HTTP_ENABLED
+    env_file:
+      - .env
+      - .env.secrets
     ports:
       - 8080:8080
 
@@ -170,15 +139,8 @@ services:
         condition: service_healthy
       access-management-service:
         condition: service_healthy
-    environment:
-      KONG_LOG_LEVEL: debug
-      KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
-      KONG_PROXY_LISTEN: 0.0.0.0:8000
-      KONG_ADMIN_LISTEN: 0.0.0.0:8001
-      KONG_ADMIN_GUI_PATH: /manager
-      KONG_ADMIN_GUI_URL: http://localhost:8002/manager
-      KONG_PLUGINS: bundled
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 1s
@@ -190,18 +152,9 @@ services:
   access-management-service:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-access-management-service:${ACCESS_MANAGEMENT_SERVICE_IMAGE_VERSION}
     restart: unless-stopped
-    environment:
-      - QUARKUS_OIDC_AUTH_SERVER_URL
-      - QUARKUS_OIDC_CLIENT_ID
-      - QUARKUS_OIDC_CREDENTIALS_SECRET
-      - QUARKUS_HTTP_CORS
-      - QUARKUS_HTTP_CORS_ORIGINS
-      - QUARKUS_HTTP_CORS_HEADERS
-      - QUARKUS_HTTP_CORS_METHODS
-      - QUARKUS_REST_CLIENT_REMS_YAML_API_KEY
-      - QUARKUS_REST_CLIENT_REMS_YAML_BOT_USER
-      - QUARKUS_REST_CLIENT_REMS_YAML_URL
-      - QUARKUS_LOG_LEVEL
+    env_file:
+      - .env
+      - .env.secrets
     depends_on:
       keycloak:
         condition: service_healthy
@@ -210,13 +163,9 @@ services:
 
   rems:
     image: cscfi/rems:${REMS_IMAGE_VERSION}
-    environment:
-      PORT: 3000
-      DATABASE_URL: ${REMS_DATABASE_URL}
-      PUBLIC_URL: ${REMS_PUBLIC_URL}
-      OIDC_METADATA_URL: ${REMS_OIDC_METADATA_URL}
-      OIDC_CLIENT_ID: ${REMS_OIDC_CLIENT_ID}
-      OIDC_CLIENT_SECRET: ${REMS_OIDC_CLIENT_SECRET}
+    env_file:
+      - .env
+      - .env.secrets
     volumes:
       - ./rems/config.edn:/rems/config/config.edn
       - ./rems/styles.css:/rems/theme/styles.css
@@ -243,28 +192,15 @@ services:
         condition: service_healthy
       ckan:
         condition: service_healthy
-    environment:
-      REMS_URL: "http://rems:3000"
-      CKAN_URL: "http://ckan:5000"
-      REMS_API_KEY: ${REMS_API_KEY}
-      REMS_BOT_USER: ${REMS_BOT_USER}
+    env_file:
+      - .env
 
   dataset-discovery-service:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-dataset-discovery-service:${DATASET_DISCOVERY_SERVICE_IMAGE_VERSION}
     restart: unless-stopped
-    environment:
-      - QUARKUS_OIDC_AUTH_SERVER_URL
-      - QUARKUS_OIDC_CLIENT_ID
-      - QUARKUS_OIDC_CREDENTIALS_SECRET
-      - QUARKUS_HTTP_CORS
-      - QUARKUS_HTTP_CORS_ORIGINS
-      - QUARKUS_HTTP_CORS_HEADERS
-      - QUARKUS_HTTP_CORS_METHODS
-      - QUARKUS_REST_CLIENT_CKAN_YAML_URL
-      - QUARKUS_REST_CLIENT_BEACON_YAML_URL
-      - QUARKUS_REST_CLIENT_KEYCLOAK_YAML_URL
-      - QUARKUS_REST_CLIENT_KEYCLOAK_YAML_BEACON_IDP_ALIAS
-      - QUARKUS_LOG_LEVEL
+    env_file:
+      - .env
+      - .env.secrets
     depends_on:
       keycloak:
         condition: service_healthy
