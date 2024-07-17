@@ -51,6 +51,7 @@ services:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
     env_file:
       - .env
+      - .env.secrets
     depends_on:
       postgres:
         condition: service_healthy
