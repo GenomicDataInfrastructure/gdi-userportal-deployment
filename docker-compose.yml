@@ -9,6 +9,8 @@ volumes:
     driver: local
   pg_data:
     driver: local
+  pg_data_16:
+    driver: local
   solr_data:
     driver: local
 
@@ -85,6 +87,19 @@ services:
       - .env.secrets
     volumes:
       - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+
+  postgres16:
+    build:
+      context: postgresql16/
+    env_file:
+      - .env
+      - .env.secrets
+    volumes:
+      - pg_data_16:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test:
