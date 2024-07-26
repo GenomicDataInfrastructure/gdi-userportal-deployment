@@ -136,7 +136,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - .env
+      - .env.keycloak
       - .env.secrets
     ports:
       - 8080:8080
