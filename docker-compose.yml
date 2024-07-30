@@ -7,8 +7,6 @@ version: "3"
 volumes:
   ckan_storage:
     driver: local
-  pg_data:
-    driver: local
   pg_data_16:
     driver: local
   solr_data:
