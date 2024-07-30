@@ -79,18 +79,6 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
     
 
-  postgres12-old:
-    build:
-      context: postgresql/
-    env_file:
-      - .env
-      - .env.secrets
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test:
-        ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   postgres:
     build:
