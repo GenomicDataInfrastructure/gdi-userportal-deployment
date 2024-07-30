@@ -79,7 +79,7 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
     
 
-  postgres:
+  postgres12-old:
     build:
       context: postgresql/
     env_file:
@@ -92,7 +92,7 @@ services:
       test:
         ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
-  postgres16:
+  postgres:
     build:
       context: postgresql16/
     env_file:
