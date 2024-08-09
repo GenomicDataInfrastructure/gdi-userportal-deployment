@@ -131,7 +131,7 @@ services:
       - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
       test:
-        ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/health/ready"]
+        ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/health/ready"]
 
   kong:
     image: kong/kong-gateway:${KONG_IMAGE_VERSION}
@@ -161,7 +161,7 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/q/health"]
+      test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
 
   rems:
     image: cscfi/rems:${REMS_IMAGE_VERSION}
@@ -207,4 +207,4 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-o", "/dev/null", http://localhost:8080/q/health"]
+      test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
