@@ -45,7 +45,7 @@ services:
       - .env.secrets
     healthcheck:
       test:
-        ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+        ["CMD", "curl", "-o", "/dev/null", "http://localhost:3000/api/health"]
 
   ckan:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
