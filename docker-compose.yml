@@ -35,7 +35,7 @@ services:
       - 80:80
 
   frontend:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:sha-cc25b88
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:${FRONTEND_IMAGE_VERSION}
     depends_on:
       kong:
         condition: service_healthy
