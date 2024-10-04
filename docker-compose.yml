@@ -26,8 +26,6 @@ services:
         condition: service_healthy
       rems:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
     restart: unless-stopped
     env_file:
       - .env
@@ -75,8 +73,9 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
-    
-
+      interval: 5s
+      timeout: 60s
+      retries: 3
 
   postgres:
     build:
@@ -126,18 +125,20 @@ services:
       - .env.secrets
     ports:
       - 8080:8080
-
     volumes:
       - ./keycloak/realms:/opt/keycloak/data/import:ro
     healthcheck:
       test:
         ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/health/ready"]
+      interval: 5s
+      timeout: 20s
+      retries: 3
 
   kong:
     image: kong/kong-gateway:${KONG_IMAGE_VERSION}
     restart: unless-stopped
     depends_on:
-      ckan:
+      dataset-discovery-service:
         condition: service_healthy
       access-management-service:
         condition: service_healthy
@@ -145,9 +146,6 @@ services:
       - .env
     healthcheck:
       test: ["CMD", "kong", "health"]
-      interval: 1s
-      timeout: 10s
-      retries: 3
     volumes:
       - ./kong/kong.yml:/etc/kong/kong.yml
 
@@ -180,8 +178,6 @@ services:
       - ./rems/public-key.jwk:/rems/keys/public-key.jwk
     depends_on:
       keycloak:
-        condition: service_healthy
-      postgres:
         condition: service_healthy
     healthcheck:
       test:
