@@ -74,8 +74,8 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
       interval: 5s
-      timeout: 60s
       retries: 3
+      start_period: 60s
 
   postgres:
     build:
@@ -131,8 +131,8 @@ services:
       test:
         ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/health/ready"]
       interval: 5s
-      timeout: 20s
       retries: 3
+      start_period: 20s
 
   kong:
     image: kong/kong-gateway:${KONG_IMAGE_VERSION}
