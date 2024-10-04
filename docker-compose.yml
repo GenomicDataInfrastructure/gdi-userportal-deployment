@@ -7,7 +7,7 @@ version: "3"
 volumes:
   ckan_storage:
     driver: local
-  pg_data_16:
+  pg_data_17:
     driver: local
   solr_data:
     driver: local
@@ -79,12 +79,12 @@ services:
 
   postgres:
     build:
-      context: postgresql16/
+      context: postgresql17/
     env_file:
       - .env
       - .env.secrets
     volumes:
-      - pg_data_16:/var/lib/postgresql/data
+      - pg_data_17:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test:
