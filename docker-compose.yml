@@ -1,15 +1,16 @@
 # SPDX-FileCopyrightText: 2024 PNED G.I.E.
 #
 # SPDX-License-Identifier: Apache-2.0
-
-version: "3"
-
 volumes:
   ckan_storage:
     driver: local
   pg_data_17:
     driver: local
   solr_data:
+    driver: local
+  pip_cache:
+    driver: local
+  site_packages:
     driver: local
 
 services:
@@ -33,7 +34,7 @@ services:
       - 80:80
 
   frontend:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:${FRONTEND_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-frontend:main
     depends_on:
       kong:
         condition: service_healthy
@@ -46,7 +47,7 @@ services:
         ["CMD", "curl", "-o", "/dev/null", "http://localhost:3000/api/health"]
 
   ckan:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:${CKAN_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:main
     env_file:
       - .env
       - .env.secrets
@@ -61,6 +62,8 @@ services:
         condition: service_healthy
     volumes:
       - ckan_storage:/var/lib/ckan
+      - pip_cache:/root/.cache/pip
+      - site_packages:/usr/lib/python3.10/site-packages
     ulimits:
       nofile:
         soft: 65536
@@ -91,7 +94,7 @@ services:
         ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:${SOLR_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:main
     volumes:
       - solr_data:/var/solr
     restart: unless-stopped
@@ -108,7 +111,7 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
 
   redis:
-    image: redis:${REDIS_VERSION}
+    image: redis:6.2.16
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "-e", "QUIT"]
@@ -135,7 +138,7 @@ services:
       start_period: 60s
 
   kong:
-    image: kong/kong-gateway:${KONG_IMAGE_VERSION}
+    image: kong/kong-gateway:3.7.1.2
     restart: unless-stopped
     depends_on:
       dataset-discovery-service:
@@ -150,7 +153,7 @@ services:
       - ./kong/kong.yml:/etc/kong/kong.yml
 
   access-management-service:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-access-management-service:${ACCESS_MANAGEMENT_SERVICE_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-access-management-service:main
     restart: unless-stopped
     env_file:
       - .env
@@ -162,7 +165,7 @@ services:
       test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
 
   rems:
-    image: cscfi/rems:${REMS_IMAGE_VERSION}
+    image: cscfi/rems:v2.37
     env_file:
       - .env
       - .env.secrets
@@ -194,7 +197,7 @@ services:
       - .env
 
   dataset-discovery-service:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-dataset-discovery-service:${DATASET_DISCOVERY_SERVICE_IMAGE_VERSION}
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-dataset-discovery-service:main
     restart: unless-stopped
     env_file:
       - .env
