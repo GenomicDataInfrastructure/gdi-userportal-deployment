@@ -2,15 +2,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 volumes:
-  ckan_storage:
+  xckan_storage:
     driver: local
   pg_data_17:
     driver: local
-  solr_data:
+  xsolr_data:
     driver: local
-  pip_cache:
+  xpip_cache:
     driver: local
-  site_packages:
+  xsite_packages:
     driver: local
 
 services:
@@ -61,9 +61,9 @@ services:
       keycloak:
         condition: service_healthy
     volumes:
-      - ckan_storage:/var/lib/ckan
-      - pip_cache:/root/.cache/pip
-      - site_packages:/usr/lib/python3.10/site-packages
+      - xckan_storage:/var/lib/ckan
+      - xpip_cache:/root/.cache/pip
+      - xsite_packages:/usr/lib/python3.10/site-packages
     ulimits:
       nofile:
         soft: 65536
@@ -96,7 +96,7 @@ services:
   solr:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:main
     volumes:
-      - solr_data:/var/solr
+      - xsolr_data:/var/solr
     restart: unless-stopped
     ulimits:
       nofile:
