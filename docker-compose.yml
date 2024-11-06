@@ -8,10 +8,6 @@ volumes:
     driver: local
   solr_data:
     driver: local
-  pip_cache:
-    driver: local
-  site_packages:
-    driver: local
 
 services:
   nginx:
@@ -62,8 +58,6 @@ services:
         condition: service_healthy
     volumes:
       - ckan_storage:/var/lib/ckan
-      - pip_cache:/root/.cache/pip
-      - site_packages:/usr/lib/python3.10/site-packages
     ulimits:
       nofile:
         soft: 65536
