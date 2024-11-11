@@ -45,7 +45,7 @@ services:
   ckan:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:main
     env_file:
-      - .env.ckan
+      - .env
       - .env.secrets
     depends_on:
       postgres:
