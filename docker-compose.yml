@@ -43,7 +43,7 @@ services:
         ["CMD", "curl", "-o", "/dev/null", "http://localhost:3000/api/health"]
 
   ckan:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:1.3.5
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:main
     env_file:
       - .env.ckan
       - .env.secrets
