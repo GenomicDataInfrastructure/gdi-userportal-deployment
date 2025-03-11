@@ -132,7 +132,7 @@ services:
       start_period: 60s
 
   kong:
-    image: kong/kong-gateway:3.9.0.1
+    image: kong/kong-gateway:3.9.1.0
     restart: unless-stopped
     depends_on:
       dataset-discovery-service:
