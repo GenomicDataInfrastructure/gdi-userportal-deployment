@@ -105,7 +105,7 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
 
   redis:
-    image: redis:7.4.2
+    image: redis:7.4.5
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "-e", "QUIT"]
@@ -132,7 +132,7 @@ services:
       start_period: 60s
 
   kong:
-    image: kong/kong-gateway:3.10.0.0
+    image: kong/kong-gateway:3.11.0.0
     restart: unless-stopped
     depends_on:
       dataset-discovery-service:
