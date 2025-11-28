@@ -13,6 +13,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: REUSE Compliance Check
         uses: fsfe/reuse-action@v5
