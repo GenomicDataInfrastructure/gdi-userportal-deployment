@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM docker.io/nginx:1.29.0-alpine
+FROM docker.io/nginx:1.29.4-alpine
 
 COPY ./ /etc/nginx/
 
