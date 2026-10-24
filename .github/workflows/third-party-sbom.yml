@@ -1,0 +1,142 @@
+# SPDX-FileCopyrightText: 2026 PNED G.I.E.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# One CycloneDX SBOM per third-party image in docker-compose.yml (built images included, so the
+# nginx, postgres and keycloak SBOMs cover their base images), a Go check for CVE-2026-111943,
+# and components.json, which links each GDI image to the SBOM attached to its own release.
+name: Third-party SBOM
+
+on:
+  pull_request:
+    paths:
+      - docker-compose.yml
+      - nginx/**
+      - postgresql17/**
+      - keycloak/**
+      - scripts/check-go-stdlib.sh
+      - scripts/go-stdlib-exceptions.txt
+      - scripts/gdi-components.sh
+      - .github/workflows/third-party-sbom.yml
+  push:
+    branches:
+      - main
+    paths:
+      - docker-compose.yml
+      - nginx/**
+      - postgresql17/**
+      - keycloak/**
+      - scripts/check-go-stdlib.sh
+      - scripts/go-stdlib-exceptions.txt
+      - scripts/gdi-components.sh
+      - .github/workflows/third-party-sbom.yml
+  # Floating tags (postgres:17-alpine, keycloak-ga4gh-visa-issuer:main) change without a commit here.
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  images:
+    name: List third-party images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: List images from docker-compose.yml
+        id: list
+        # Every service that is not a GDI image: pulled images by reference, built ones by context.
+        run: |
+          matrix=$(docker compose config --format json | jq -c --arg ws "$GITHUB_WORKSPACE/" '{include: [
+            .services | to_entries[]
+            | select((.value.image // "") | startswith("ghcr.io/genomicdatainfrastructure/") | not)
+            | if .value.build then {name: .key, context: (.value.build.context | ltrimstr($ws))}
+              else {name: .key, image: .value.image} end
+          ]}')
+          echo "$matrix" | jq .
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  sbom:
+    name: SBOM (${{ matrix.name }})
+    needs: images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.images.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build image
+        id: image
+        env:
+          NAME: ${{ matrix.name }}
+          IMAGE: ${{ matrix.image }}
+          CONTEXT: ${{ matrix.context }}
+        # ref is what Trivy scans; base names the image for the Go check's exceptions (for a
+        # built image, its final FROM).
+        run: |
+          ref=$IMAGE
+          base=$IMAGE
+          if [ -n "$CONTEXT" ]; then
+            ref="third-party-sbom/$NAME:${GITHUB_SHA}"
+            base=$(awk 'toupper($1) == "FROM" { b = $2 } END { print b }' "$CONTEXT/Dockerfile")
+            docker build -t "$ref" "$CONTEXT"
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+      - name: Generate image SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.image.outputs.ref }}
+          format: cyclonedx
+          output: sbom-${{ matrix.name }}.cdx.json
+          cache: "false"
+      - name: Check Go binaries (CVE-2026-111943)
+        env:
+          NAME: ${{ matrix.name }}
+          BASE: ${{ steps.image.outputs.base }}
+        run: scripts/check-go-stdlib.sh "$BASE" "sbom-$NAME.cdx.json"
+      - name: Upload SBOM
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-${{ matrix.name }}
+          path: sbom-${{ matrix.name }}.cdx.json
+          if-no-files-found: error
+
+  components:
+    name: GDI components
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout, release lookups
+      packages: read # GDI image digests on GHCR
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Write components.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          docker compose config --format json | scripts/gdi-components.sh > components.json
+          cat components.json
+      - name: Upload components.json
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: components
+          path: components.json
+          if-no-files-found: error
