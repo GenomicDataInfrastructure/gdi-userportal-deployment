@@ -17,3 +17,16 @@ services:
       - name: dataset-discovery-service-route
         paths:
           - /discovery/
+
+# CVE-2026-111497: AMS and DDS ship brotli4j. Reject Brotli request bodies
+# and never ask the upstreams for a Brotli response.
+plugins:
+  - name: pre-function
+    config:
+      access:
+        - |
+          local ce = kong.request.get_header("content-encoding")
+          if ce and ce:lower():find("br", 1, true) then
+            return kong.response.exit(415, { message = "Brotli not accepted" })
+          end
+          kong.service.request.set_header("accept-encoding", "gzip, deflate")

@@ -66,6 +66,42 @@ If you want to test locally with another domain, you can generated a new self-si
 openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout ./nginx/ssl/server.key -out ./nginx/ssl/server.crt -config ./nginx/ssl/openssl.cnf
 ```
 
+# Running locally
+
+To run the whole stack on a workstation (for example to test a change before deploying it), use
+`docker-compose.local.yml` on top of `docker-compose.yml`. It keeps the stack self-contained:
+- nginx listens on `LOCAL_HTTP_PORT` (default 8088);
+- server-to-server calls to Keycloak stay inside the network;
+- the synchronizer syncs from the local CKAN, not the live catalogue;
+- REMS never sends mail;
+- the amd64-only GDI images get long health-check start periods, because on arm64 (Apple Silicon) they run under emulation.
+
+```bash
+# The GDI images are private: log in with a GitHub token that has read:packages
+docker login ghcr.io            # or: podman login ghcr.io
+
+cp .env.secrets.example .env.secrets   # fill in every value (any random strings work locally)
+git update-index --skip-worktree .env.secrets   # .env.secrets is tracked: never commit real values
+
+docker compose -f docker-compose.yml -f docker-compose.local.yml build
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres
+docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm -e CMD="migrate;test-data" rems
+docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm -e CMD="api-key add <REMS_API_KEY> userportal" rems
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+```
+
+With Podman, `podman login` doesn't apply to docker-compose: pull the GDI images first with
+`podman pull --platform linux/amd64 ghcr.io/genomicdatainfrastructure/<image>:<tag>`.
+
+Browse to `http://portal.localhost:8088/`. The local override serves the five sites as
+`portal.localhost`, `catalogue.localhost`, `api.localhost`, `daam.localhost` and `id.localhost`:
+browsers resolve `*.localhost` to 127.0.0.1 without `/etc/hosts` and never force HTTPS on it,
+whereas a browser that has visited the real `*.gdi.lu` sites may refuse plain HTTP for them.
+From the command line: `curl -H "Host: portal.localhost" http://127.0.0.1:8088/`.
+
+Logging in doesn't work locally: Keycloak, the frontend and REMS redirect browsers to the
+`https://` hostnames in `.env`. CKAN starts with no datasets.
+
 # Post configuration
 * Add a new user to CKAN realm and REMS realm in Keycloak
 * Ensure both CKAN and frontend are pointing to the same Keycloak;

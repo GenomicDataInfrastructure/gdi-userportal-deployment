@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2026 PNED G.I.E.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Opt-in overrides for running the whole stack on a workstation (see "Running locally" in
+# README.md). Not for servers:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+
+# The GDI images are published for linux/amd64 only. On arm64 (e.g. Apple Silicon) they run under
+# emulation and start several times slower, so health checks get a long start period.
+x-slow-start: &slow-start
+  start_period: 900s
+  interval: 10s
+  retries: 6
+
+services:
+  nginx:
+    ports: !override
+      - "${LOCAL_HTTP_PORT:-8088}:80"
+    environment:
+      # Browsers resolve *.localhost to 127.0.0.1 without /etc/hosts and never force HTTPS on it
+      # (the real *.gdi.lu names can be HSTS-pinned in a browser that has visited them).
+      ID_HOSTNAME: id.localhost
+      CATALOGUE_HOSTNAME: catalogue.localhost
+      DISCOVER_HOSTNAME: portal.localhost
+      API_HOSTNAME: api.localhost
+      DAAM_HOSTNAME: daam.localhost
+
+  keycloak:
+    environment:
+      # Server-to-server calls (AMS, DDS, REMS fetching keys and tokens) get the internal URL, so
+      # a local stack doesn't call the public KC_HOSTNAME.
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      # .env.keycloak sets TRACE, which floods the log (journald then drops lines, among them
+      # "started in") and slows startup.
+      KC_LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/health/ready"]
+      <<: *slow-start
+
+  frontend:
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:3000/api/health"]
+      <<: *slow-start
+
+  ckan:
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
+      <<: *slow-start
+
+  solr:
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
+      <<: *slow-start
+
+  access-management-service:
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
+      <<: *slow-start
+
+  dataset-discovery-service:
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
+      <<: *slow-start
+
+  kong:
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      <<: *slow-start
+
+  rems:
+    environment:
+      # Overrides :smtp-host in rems/config.edn, so a local stack never sends mail.
+      SMTP_HOST: localhost
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:3000/api/health"]
+      <<: *slow-start
+
+  synchronizer:
+    platform: linux/amd64
+    environment:
+      # .env points at the live dev catalogue; sync from the local CKAN instead.
+      CKAN_URL: http://ckan:5000

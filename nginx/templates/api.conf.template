@@ -16,6 +16,11 @@ server {
     real_ip_header X-Real-IP;
     real_ip_recursive on;
 
+    # CVE-2026-111497: nothing in the stack accepts Brotli request bodies.
+    if ($http_content_encoding ~* "br") {
+        return 415;
+    }
+
     location / {
         proxy_pass http://api;
         
