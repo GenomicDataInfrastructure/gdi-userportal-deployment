@@ -40,6 +40,9 @@ Roots are removed by certificate subject, because alias names differ between JDK
 
 Both roots are already absent from the patched RHEL store, so the removal is a guard: the script
 deletes them if a future source store brings them back, and fails if either is still present at the end.
+It also fails if `cacerts` or `ca-bundle.pem` has fewer than 100 certificates. keytool's output is
+written to a file before it is searched: `sh` has no `pipefail`, so in `! keytool … | grep` a failing
+keytool (for example on a truncated store) would print nothing and the guard would pass.
 
 ## Private CAs added
 
@@ -62,11 +65,13 @@ To change the distrust rule, edit `DISTRUST` in the script. To move to a newer R
 
 ## Check
 
-Inside a Java container with the store mounted, this prints 0:
+Inside a Java container with the store mounted, this prints `118` (the number of roots; anything
+below 100 means the store is broken) and then `0` (distrusted roots):
 
 ```bash
-keytool -list -v -cacerts -storepass changeit | grep -cE "^Owner: CN=(emSign ECC Root CA - G3|AAA Certificate Services),"
+keytool -list -v -cacerts -storepass changeit > /tmp/cacerts.txt && grep -c '^Alias name: ' /tmp/cacerts.txt && grep -cE "^Owner: CN=(emSign ECC Root CA - G3|AAA Certificate Services)," /tmp/cacerts.txt
 ```
 
-For a store file, use `-keystore <file>` instead of `-cacerts`. In containers that use the PEM bundle,
+If keytool fails, nothing is printed: never pipe keytool straight into `grep`, because a failing
+keytool then looks like "0 distrusted roots". For a store file, use `-keystore <file>` instead of `-cacerts`. In containers that use the PEM bundle,
 `sha256sum /etc/lnds/ca-bundle.pem` must match the hash above.

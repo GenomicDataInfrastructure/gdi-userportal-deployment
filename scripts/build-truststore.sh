@@ -15,13 +15,19 @@ DISTRUST='^Owner: CN=(emSign ECC Root CA - G3|AAA Certificate Services),'
   cp /etc/pki/ca-trust/extracted/java/cacerts /out/cacerts'
 "$DOCKER" run --rm -i -e DISTRUST="$DISTRUST" -v "$PWD/truststore:/out" "$TEMURIN" sh -eu <<'EOF'
 ks() { keytool "$@" -keystore /out/cacerts -storepass changeit; }
-ks -list -v | awk -v re="$DISTRUST" '/^Alias name: /{a=substr($0,13)} $0 ~ re {print a}' > /tmp/distrust
+# No pipes into keytool: sh has no pipefail, so a failing keytool would look like "nothing to remove".
+ks -list -v > /tmp/list
+awk -v re="$DISTRUST" '/^Alias name: /{a=substr($0,13)} $0 ~ re {print a}' /tmp/list > /tmp/distrust
 while IFS= read -r a; do ks -delete -alias "$a"; done < /tmp/distrust
 for f in /out/extra/*.pem; do
   [ -e "$f" ] || continue
   ks -importcert -noprompt -alias "lnds-$(basename "$f" .pem)" -file "$f"
 done
-ks -list -rfc | sed -n "/BEGIN CERTIFICATE/,/END CERTIFICATE/p" > /out/ca-bundle.pem
-! ks -list -v | grep -qE "$DISTRUST"
+ks -list -rfc > /tmp/rfc
+sed -n "/BEGIN CERTIFICATE/,/END CERTIFICATE/p" /tmp/rfc > /out/ca-bundle.pem
+ks -list -v > /tmp/list
+[ "$(grep -c '^Alias name: ' /tmp/list)" -ge 100 ]
+[ "$(grep -c 'BEGIN CERTIFICATE' /out/ca-bundle.pem)" -ge 100 ]
+! grep -qE "$DISTRUST" /tmp/list
 EOF
 chmod 644 truststore/cacerts truststore/ca-bundle.pem
