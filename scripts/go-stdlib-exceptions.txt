@@ -9,7 +9,7 @@
 # image is the reference from docker-compose.yml, or the final FROM of a build context, without
 # a docker.io/ or docker.io/library/ prefix.
 
-image: postgres:17-alpine
+image: postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
 binary: /usr/local/bin/gosu
 go: go1.24.6
 reason: gosu doesn't link crypto/x509 or crypto/tls; verified 2026-10-24 (0 crypto/x509., crypto/tls. and net/http. function symbols in the unstripped amd64 binary of sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb, gosu 1.19.0)
