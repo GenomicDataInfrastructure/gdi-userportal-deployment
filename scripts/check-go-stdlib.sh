@@ -5,14 +5,17 @@
 
 # CVE-2026-111943 (Go crypto/x509): fails if a Trivy CycloneDX SBOM contains a Go binary
 # built with Go < 1.26.10, or 1.27.x < 1.27.3.
-# Usage: scripts/check-go-stdlib.sh <image> <sbom.cdx.json>
-# <image> is the image reference (for a built image, its final FROM). Accepted exceptions, with
-# their reason and review-by date, are in scripts/go-stdlib-exceptions.txt.
+# Usage: scripts/check-go-stdlib.sh <image> <sbom.cdx.json> [go-binaries.tsv]
+# <image> is the image reference (for a built image, its final FROM). go-binaries.tsv is the
+# output of scripts/go-binaries.py for the same image: Trivy doesn't report Go binaries installed
+# by apt, apk or rpm (e.g. Ubuntu's gosu), so the SBOM alone misses them. Accepted exceptions,
+# with their reason and review-by date, are in scripts/go-stdlib-exceptions.txt.
 set -euo pipefail
 
 image=${1#docker.io/}
 image=${image#library/}
 sbom=$2
+scanned=${3:-/dev/null}
 exceptions="$(dirname "$0")/go-stdlib-exceptions.txt"
 today=$(date -u +%F)
 
@@ -42,15 +45,17 @@ exception() {
   ' "$exceptions"
 }
 
-# One line per Go binary: path, then the Go version (stdlib) it was built with.
-binaries=$(jq -r '
+# One line per Go binary: path, then the Go version (stdlib) it was built with. The direct scan
+# comes first, so it wins when both list the same path.
+from_sbom=$(jq -r '
   ((.dependencies // []) | map({key: .ref, value: (.dependsOn // [])}) | from_entries) as $g
   | .components[]?
   | select(.type == "application" and any(.properties[]?; .name == "aquasecurity:trivy:Type" and .value == "gobinary"))
   | ($g[.["bom-ref"]] // []) as $direct
   | ([$direct[], ($direct[] | ($g[.] // [])[])] | map(select(startswith("pkg:golang/stdlib@")) | sub("^pkg:golang/stdlib@"; "")) | unique) as $std
-  | "\(.name)\t\(if $std == [] then "unknown" else ($std | join(",")) end)"
+  | "/\(.name)\t\(if $std == [] then "unknown" else ($std | map(sub("^v"; "go")) | join(",")) end)"
 ' "$sbom")
+binaries=$({ cat "$scanned"; [ -z "$from_sbom" ] || echo "$from_sbom"; } | sort -s -t $'\t' -k1,1 -u)
 
 {
   echo "### Go binaries in $image (CVE-2026-111943)"
@@ -66,8 +71,6 @@ binaries=$(jq -r '
 failed=0
 while IFS=$'\t' read -r path go; do
   [ -n "$path" ] || continue
-  path=/$path
-  [ "$go" = unknown ] || go=go${go#v}
   if fixed "${go#go}"; then
     result=ok
   else
