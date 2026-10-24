@@ -17,7 +17,7 @@ out=$2
 gdi_parse "$ref"
 repo=$(gdi_repo "$gdi_name")
 
-if [[ $gdi_tag =~ ^v?[0-9]+(\.[0-9]+)*$ ]]; then
+if gdi_is_release_tag "$gdi_tag"; then
   pinned=true
   release=$(gdi_release "$repo" "$gdi_tag")
 else

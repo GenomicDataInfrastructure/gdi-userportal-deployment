@@ -4,10 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Prints components.json: every GDI image this deployment runs (docker-compose.yml images and
-# FROM lines of its build contexts), with its digest and a link to the SBOM attached to its
-# release. Third-party images get their own SBOMs in .github/workflows/third-party-sbom.yml.
-# A digest pinned in the image reference (name:tag@sha256:...) is used as is; otherwise the
-# current digest of the tag is looked up and "pinned" is false.
+# FROM lines of its build contexts), with its release, the SBOM attached to that release and the
+# image digest. Third-party images get their own SBOMs in .github/workflows/third-party-sbom.yml.
+# "pinned" means the reference names a release tag. The digest comes from the reference
+# (name:tag@sha256:...), else from the release SBOM, else from an anonymous registry lookup;
+# digest_source says which.
 # Usage: docker compose config --format json | scripts/gdi-components.sh > components.json
 #        docker compose config --format json | scripts/gdi-components.sh --list   (images only)
 # Needs curl, jq and gh (GH_TOKEN set).
@@ -45,21 +46,34 @@ gdi_images | while IFS=$'\t' read -r service ref; do
   name=$gdi_name tag=$gdi_tag digest=$gdi_digest
   repo=$(gdi_repo "$name")
 
-  pinned=true
-  if [ -z "$digest" ]; then
-    pinned=false
-    digest=$(digest_of "$name" "$tag" 2>/dev/null)
-    echo "::warning::$service: $ref is not pinned by digest${digest:+ (current digest looked up)}" >&2
+  pinned=false
+  json=""
+  if gdi_is_release_tag "$tag"; then
+    pinned=true
+    json=$(gdi_release "$repo" "$tag")
+  else
+    echo "::warning::$service: $ref is not pinned to a release" >&2
   fi
+  release=$(jq -r '.html_url // empty' <<< "${json:-null}")
+  sbom=$(jq -r '[.assets[]? | select(.name == "sbom.cdx.json") | .browser_download_url][0] // empty' <<< "${json:-null}")
+  if $pinned && [ -z "$sbom" ]; then echo "::warning::$service: no SBOM on the release of $ref" >&2; fi
 
-  json=$(gdi_release "$repo" "$tag")
-  release=$(jq -r '.html_url // empty' <<< "$json")
-  sbom=$(jq -r '[.assets[]? | select(.name == "sbom.cdx.json") | .browser_download_url][0] // empty' <<< "$json")
-  if [ -z "$sbom" ]; then echo "::warning::$service: no release SBOM found for $ref" >&2; fi
+  source=compose
+  if [ -z "$digest" ] && [ -n "$sbom" ]; then
+    source="release SBOM"
+    digest=$(curl -fsSL "$sbom" | jq -r '[.metadata.component.properties[]? | select(.name == "aquasecurity:trivy:RepoDigest") | .value | sub(".*@"; "")][0] // empty')
+  fi
+  if [ -z "$digest" ]; then
+    source=registry
+    digest=$(digest_of "$name" "$tag" 2>/dev/null)
+  fi
+  if [ -z "$digest" ]; then source=""; fi
 
   jq -n --arg service "$service" --arg image "$gdi_prefix$name" --arg tag "$tag" --arg digest "$digest" \
-    --argjson pinned "$pinned" --arg repository "https://github.com/$gdi_org/$repo" \
+    --arg source "$source" --argjson pinned "$pinned" --arg repository "https://github.com/$gdi_org/$repo" \
     --arg release "$release" --arg sbom "$sbom" \
-    '{service: $service, image: $image, tag: $tag, digest: (if $digest == "" then null else $digest end), pinned: $pinned, repository: $repository,
-      release: (if $release == "" then null else $release end), sbom: (if $sbom == "" then null else $sbom end)}'
+    'def nullable: if . == "" then null else . end;
+     {service: $service, image: $image, tag: $tag, pinned: $pinned, digest: ($digest | nullable),
+      digest_source: ($source | nullable), repository: $repository, release: ($release | nullable),
+      sbom: ($sbom | nullable)}'
 done | jq -s '{components: .}'

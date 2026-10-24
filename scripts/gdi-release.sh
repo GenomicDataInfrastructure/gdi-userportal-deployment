@@ -20,6 +20,11 @@ gdi_parse() {
   if [[ $rest == *:* ]]; then gdi_tag=${rest#*:}; fi
 }
 
+# True for a release tag (1.2.3 or v1.2.3), false for a branch tag such as main.
+gdi_is_release_tag() {
+  [[ $1 =~ ^v?[0-9]+(\.[0-9]+)*$ ]]
+}
+
 # Repository that publishes an image (most are named after their image).
 gdi_repo() {
   case "$1" in
