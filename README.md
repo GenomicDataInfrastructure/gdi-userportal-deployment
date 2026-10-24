@@ -93,17 +93,14 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
 With Podman, `podman login` doesn't apply to docker-compose: pull the GDI images first with
 `podman pull --platform linux/amd64 ghcr.io/genomicdatainfrastructure/<image>:<tag>`.
 
-nginx picks the virtual host from the `Host` header. Either send it:
+Browse to `http://portal.localhost:8088/`. The local override serves the five sites as
+`portal.localhost`, `catalogue.localhost`, `api.localhost`, `daam.localhost` and `id.localhost`:
+browsers resolve `*.localhost` to 127.0.0.1 without `/etc/hosts` and never force HTTPS on it,
+whereas a browser that has visited the real `*.gdi.lu` sites may refuse plain HTTP for them.
+From the command line: `curl -H "Host: portal.localhost" http://127.0.0.1:8088/`.
 
-```bash
-curl -H "Host: portal.dev.gdi.lu" http://localhost:8088/
-```
-
-or point the five `*_HOSTNAME` names from `.env`, and `kong`, at `127.0.0.1` in `/etc/hosts` and
-browse to `http://portal.dev.gdi.lu:8088/`. The portal's browser code calls the APIs at
-`http://kong:8000` (`NEXT_PUBLIC_DDS_URL`, `NEXT_PUBLIC_DAAM_URL`), which the local override publishes
-on `LOCAL_KONG_PORT` (default 8000). Logging in doesn't work locally: Keycloak, the frontend and REMS
-redirect browsers to the `https://` hostnames in `.env`.
+Logging in doesn't work locally: Keycloak, the frontend and REMS redirect browsers to the
+`https://` hostnames in `.env`. CKAN starts with no datasets.
 
 # Post configuration
 * Add a new user to CKAN realm and REMS realm in Keycloak

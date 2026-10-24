@@ -30,5 +30,8 @@ server {
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Port 80;
+        # Next.js checks Server Actions' Origin against X-Forwarded-Host; $http_host keeps a
+        # non-default port (e.g. a local run on :8088), where $host would drop it.
+        proxy_set_header X-Forwarded-Host $http_host;
     }
 }
