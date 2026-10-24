@@ -31,7 +31,9 @@ gdi_images() {
   jq -r --arg p "$gdi_prefix" '.services | to_entries[] | select((.value.image // "") | startswith($p)) | "\(.key)\t\(.value.image)"' <<< "$compose"
   jq -r '.services | to_entries[] | select(.value.build) | "\(.key)\t\(.value.build.context)/\(.value.build.dockerfile // "Dockerfile")"' <<< "$compose" |
     while IFS=$'\t' read -r service dockerfile; do
-      awk -v s="$service" -v p="$gdi_prefix" 'toupper($1) == "FROM" && index($2, p) == 1 { print s "\t" $2 }' "$dockerfile"
+      awk -v s="$service" -v p="$gdi_prefix" 'toupper($1) == "FROM" {
+        for (i = 2; i <= NF; i++) if ($i !~ /^--/) { if (index($i, p) == 1) print s "\t" $i; break }
+      }' "$dockerfile"
     done
 }
 

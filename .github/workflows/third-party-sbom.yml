@@ -106,7 +106,7 @@ jobs:
           base=$IMAGE
           if [ -n "$CONTEXT" ]; then
             ref="third-party-sbom/$NAME:${GITHUB_SHA}"
-            base=$(awk 'toupper($1) == "FROM" { b = $2 } END { print b }' "$CONTEXT/Dockerfile")
+            base=$(awk 'toupper($1) == "FROM" { for (i = 2; i <= NF; i++) if ($i !~ /^--/) { b = $i; break } } END { print b }' "$CONTEXT/Dockerfile")
             docker build -t "$ref" "$CONTEXT"
           else
             docker pull "$ref"
