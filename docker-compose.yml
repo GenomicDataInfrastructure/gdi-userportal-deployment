@@ -54,7 +54,7 @@ services:
         ["CMD", "curl", "-o", "/dev/null", "http://localhost:3000/api/health"]
 
   ckan:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:1.5.5
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-ckan-docker:1.5.6
     env_file:
       - .env.ckan
       - .env.secrets
@@ -101,7 +101,7 @@ services:
         ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
-    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:1.14.4
+    image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:1.14.5
     volumes:
       - solr_data:/var/solr
     restart: unless-stopped
@@ -175,7 +175,7 @@ services:
       test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
 
   rems:
-    image: cscfi/rems:v2.39
+    image: cscfi/rems:v2.41@sha256:2b34f183f617ef890ab4fc6209512bbd3c4399f8054f8532b8b25d1850d7743c
     env_file:
       - .env
       - .env.secrets
