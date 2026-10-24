@@ -4,8 +4,8 @@
 
 # One CycloneDX SBOM per third-party image in docker-compose.yml (built images included, so the
 # nginx, postgres and keycloak SBOMs cover their base images), a Go check for CVE-2026-111943 over
-# every image the deployment runs (GDI images included), and components.json, which links each GDI
-# image to the SBOM attached to its own release.
+# every image the deployment runs (GDI images through the SBOMs attached to their releases), and
+# components.json, which links each GDI image to its release SBOM.
 name: Third-party SBOM
 
 on:
@@ -20,6 +20,7 @@ on:
       - scripts/go-stdlib-exceptions.txt
       - scripts/gdi-components.sh
       - scripts/gdi-release.sh
+      - scripts/gdi-release-sbom.sh
       - .github/workflows/third-party-sbom.yml
   push:
     branches:
@@ -34,6 +35,7 @@ on:
       - scripts/go-stdlib-exceptions.txt
       - scripts/gdi-components.sh
       - scripts/gdi-release.sh
+      - scripts/gdi-release-sbom.sh
       - .github/workflows/third-party-sbom.yml
   # Floating tags (postgres:17-alpine, the GDI :main images) change without a commit here.
   schedule:
@@ -53,24 +55,30 @@ jobs:
     permissions:
       contents: read # checkout
     outputs:
-      matrix: ${{ steps.list.outputs.matrix }}
+      third-party: ${{ steps.list.outputs.third-party }}
+      gdi: ${{ steps.list.outputs.gdi }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: List images from docker-compose.yml
         id: list
-        # Every service: pulled images by reference, built ones by context. GDI images are only
-        # Go-checked here; their SBOMs are attached to their own releases.
+        # Third-party images: pulled ones by reference, built ones by context. GDI images: the
+        # compose images plus GDI FROM lines of build contexts.
         run: |
-          matrix=$(docker compose config --format json | jq -c --arg ws "$GITHUB_WORKSPACE/" '{include: [
+          docker compose config --format json > compose.json
+          third_party=$(jq -c --arg ws "$GITHUB_WORKSPACE/" '{include: [
             .services | to_entries[]
+            | select((.value.image // "") | startswith("ghcr.io/genomicdatainfrastructure/") | not)
             | if .value.build then {name: .key, context: (.value.build.context | ltrimstr($ws))}
-              else {name: .key, image: .value.image,
-                    gdi: (.value.image | startswith("ghcr.io/genomicdatainfrastructure/"))} end
-          ]}')
-          echo "$matrix" | jq .
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+              else {name: .key, image: .value.image} end
+          ]}' compose.json)
+          gdi=$(scripts/gdi-components.sh --list < compose.json |
+            jq -Rnc '{include: [inputs | split("\t") | {name: .[0], image: .[1]}]}')
+          echo "$third_party" | jq .
+          echo "$gdi" | jq .
+          echo "third-party=$third_party" >> "$GITHUB_OUTPUT"
+          echo "gdi=$gdi" >> "$GITHUB_OUTPUT"
 
   scan:
     name: Scan (${{ matrix.name }})
@@ -78,20 +86,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read # checkout
-      packages: read # pull the GDI images from GHCR
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.images.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.images.outputs.third-party) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Log in to GHCR
-        if: ${{ matrix.gdi }}
-        env:
-          ACTOR: ${{ github.actor }}
-          TOKEN: ${{ github.token }}
-        run: echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
       - name: Pull or build image
         id: image
         env:
@@ -107,9 +108,8 @@ jobs:
             ref="third-party-sbom/$NAME:${GITHUB_SHA}"
             base=$(awk 'toupper($1) == "FROM" { b = $2 } END { print b }' "$CONTEXT/Dockerfile")
             docker build -t "$ref" "$CONTEXT"
-          elif ! docker pull "$ref"; then
-            echo "::error::Cannot pull $ref, so its Go binaries can't be checked. For a GDI image, give this repository read access to the package."
-            exit 1
+          else
+            docker pull "$ref"
           fi
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
           echo "base=$base" >> "$GITHUB_OUTPUT"
@@ -136,19 +136,46 @@ jobs:
           BASE: ${{ steps.image.outputs.base }}
         run: scripts/check-go-stdlib.sh "$BASE" "sbom-$NAME.cdx.json" go-binaries.tsv
       - name: Upload SBOM
-        if: ${{ !cancelled() && !matrix.gdi }}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom-${{ matrix.name }}
           path: sbom-${{ matrix.name }}.cdx.json
           if-no-files-found: error
 
+  gdi:
+    name: Go check (${{ matrix.name }})
+    needs: images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout, release SBOM downloads
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.images.outputs.gdi) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download release SBOM
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ${{ matrix.image }}
+        run: scripts/gdi-release-sbom.sh "$IMAGE" sbom.cdx.json
+      - name: Check Go binaries (CVE-2026-111943)
+        if: ${{ hashFiles('sbom.cdx.json') != '' }}
+        env:
+          IMAGE: ${{ matrix.image }}
+        # Release SBOMs come from Trivy, which doesn't report Go binaries installed by apt, apk or
+        # rpm (e.g. Ubuntu's gosu in the Solr image), so those aren't checked here.
+        run: |
+          echo "Go binaries installed by apt, apk or rpm aren't in release SBOMs and aren't checked." >> "$GITHUB_STEP_SUMMARY"
+          scripts/check-go-stdlib.sh "$IMAGE" sbom.cdx.json
+
   components:
     name: GDI components
     runs-on: ubuntu-latest
     permissions:
       contents: read # checkout, release lookups
-      packages: read # GDI image digests on GHCR
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -156,7 +183,6 @@ jobs:
       - name: Write components.json
         env:
           GH_TOKEN: ${{ github.token }}
-          GHCR_TOKEN: ${{ github.token }}
         run: |
           docker compose config --format json | scripts/gdi-components.sh > components.json
           cat components.json

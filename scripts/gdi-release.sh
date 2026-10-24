@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# Helpers for GDI images (ghcr.io/genomicdatainfrastructure/*), sourced by gdi-components.sh.
+# Helpers for GDI images (ghcr.io/genomicdatainfrastructure/*), sourced by gdi-components.sh and
+# gdi-release-sbom.sh.
 # Needs jq and gh (GH_TOKEN set).
 # shellcheck shell=bash disable=SC2034 # sets gdi_* for the caller
 

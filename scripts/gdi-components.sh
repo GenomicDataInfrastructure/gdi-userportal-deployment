@@ -9,31 +9,38 @@
 # A digest pinned in the image reference (name:tag@sha256:...) is used as is; otherwise the
 # current digest of the tag is looked up and "pinned" is false.
 # Usage: docker compose config --format json | scripts/gdi-components.sh > components.json
-# Needs curl, jq and gh (GH_TOKEN set); GHCR_TOKEN is optional, see digest_of.
+#        docker compose config --format json | scripts/gdi-components.sh --list   (images only)
+# Needs curl, jq and gh (GH_TOKEN set).
 set -euo pipefail
 # shellcheck source=scripts/gdi-release.sh
 . "$(dirname "$0")/gdi-release.sh"
 
-# Current digest of name:tag. Most GDI packages need auth: GHCR_TOKEN (a token with read:packages
-# that can see the package) is used when set. Prints nothing when the registry refuses.
+# Current digest of name:tag, looked up anonymously. Prints nothing for a private package.
 digest_of() {
-  local name=$1 tag=$2 token auth=()
-  if [ -n "${GHCR_TOKEN:-}" ]; then auth=(-u "token:$GHCR_TOKEN"); fi
-  token=$(curl -fsS "${auth[@]}" "https://ghcr.io/token?service=ghcr.io&scope=repository:genomicdatainfrastructure/$name:pull" | jq -r .token) || return 0
+  local name=$1 tag=$2 token
+  token=$(curl -fsS "https://ghcr.io/token?service=ghcr.io&scope=repository:genomicdatainfrastructure/$name:pull" | jq -r .token) || return 0
   curl -fsSI -H "Authorization: Bearer $token" \
     -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
     "https://ghcr.io/v2/genomicdatainfrastructure/$name/manifests/$tag" |
     tr -d '\r' | awk 'tolower($1) == "docker-content-digest:" { print $2 }' || true
 }
 
-compose=$(cat)
-{
+# One line per GDI image: compose service, then image reference.
+gdi_images() {
   jq -r --arg p "$gdi_prefix" '.services | to_entries[] | select((.value.image // "") | startswith($p)) | "\(.key)\t\(.value.image)"' <<< "$compose"
   jq -r '.services | to_entries[] | select(.value.build) | "\(.key)\t\(.value.build.context)/\(.value.build.dockerfile // "Dockerfile")"' <<< "$compose" |
     while IFS=$'\t' read -r service dockerfile; do
       awk -v s="$service" -v p="$gdi_prefix" 'toupper($1) == "FROM" && index($2, p) == 1 { print s "\t" $2 }' "$dockerfile"
     done
-} | while IFS=$'\t' read -r service ref; do
+}
+
+compose=$(cat)
+if [ "${1:-}" = --list ]; then
+  gdi_images
+  exit 0
+fi
+
+gdi_images | while IFS=$'\t' read -r service ref; do
   gdi_parse "$ref"
   name=$gdi_name tag=$gdi_tag digest=$gdi_digest
   repo=$(gdi_repo "$name")
