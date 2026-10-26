@@ -175,7 +175,7 @@ services:
       test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
 
   rems:
-    image: cscfi/rems:v2.39
+    image: cscfi/rems:v2.41
     env_file:
       - .env
       - .env.secrets
