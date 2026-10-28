@@ -6,7 +6,7 @@
 # curl rootfs matches the image it's copied into, also when building on arm64 (e.g. Apple Silicon).
 
 # First stage: Install curl
-FROM --platform=linux/amd64 registry.access.redhat.com/ubi9:1792742326@sha256:217dd5692d369799d34d09ffb6f5f3404efebc7900834490fdf9ae92fd6721d4 AS ubi-micro-build
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi9:1793179250@sha256:5f08e80aa970ae77712e75e5e857ac0b396abc900823c4d041c1150a9538a13f AS ubi-micro-build
 RUN mkdir -p /mnt/rootfs
 RUN dnf install --installroot /mnt/rootfs curl --releasever 9 --setopt install_weak_deps=false --nodocs -y && \
     dnf --installroot /mnt/rootfs clean all && \
