@@ -13,7 +13,7 @@ RUN dnf install --installroot /mnt/rootfs curl --releasever 9 --setopt install_w
     rpm --root /mnt/rootfs -e --nodeps setup
 
 # Second stage: build keycloak image
-FROM --platform=linux/amd64 ghcr.io/genomicdatainfrastructure/keycloak-ga4gh-visa-issuer:1.0.5
+FROM --platform=linux/amd64 ghcr.io/genomicdatainfrastructure/keycloak-ga4gh-visa-issuer:main
 # Copy curl from the first stage
 COPY --from=ubi-micro-build /mnt/rootfs /
 # The rootfs brings its own ca-certificates, which replaces Keycloak's Java trust store. Fail the
