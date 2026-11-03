@@ -52,10 +52,18 @@ cp .env.example .env
 * Replace NGINX SSL certificates.
 
 # Running
+
+Tracking `main` applies exclusively to the **Dev environment**. Other environments
+continue to use the release versions configured in their GitLab environment variables.
+
+For Dev, GDI service images track their repositories’ `main` branch. Compose pulls
+them on each `up`; use `build --pull` to refresh the Keycloak base image as well.
+Third-party images keep their configured versions. The commands below are for Dev;
+run them again after the upstream image builds finish to update running containers.
 ```bash
 sudo su
 cd /srv/gdi-userportal-deployment/
-docker compose build
+docker compose build --pull
 docker compose run --rm -e CMD="migrate;test-data" rems
 docker compose up -d
 ```
@@ -83,7 +91,7 @@ docker login ghcr.io            # or: podman login ghcr.io
 cp .env.secrets.example .env.secrets   # fill in every value (any random strings work locally)
 git update-index --skip-worktree .env.secrets   # .env.secrets is tracked: never commit real values
 
-docker compose -f docker-compose.yml -f docker-compose.local.yml build
+docker compose -f docker-compose.yml -f docker-compose.local.yml build --pull
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres
 docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm -e CMD="migrate;test-data" rems
 docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm -e CMD="api-key add <REMS_API_KEY> userportal" rems
