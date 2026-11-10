@@ -149,7 +149,7 @@ services:
       start_period: 60s
 
   kong:
-    image: kong/kong-gateway:3.13.0.11@sha256:58423624bb31b185dfc08e973d80164d98c4792c742da2bc9942ec74ced61d9e
+    image: kong/kong-gateway:3.13.0.12@sha256:6325473343ba31a0e3ed44d342005369973f4517b303b9db0c6f28a3a3bf9ce5
     restart: unless-stopped
     depends_on:
       dataset-discovery-service:
