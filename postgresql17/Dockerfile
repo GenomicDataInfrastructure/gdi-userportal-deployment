@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM docker.io/postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
+FROM docker.io/postgres:17.11-alpine@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0
 
 # Include extra setup scripts (eg datastore)
 COPY --chown=postgres:postgres docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
