@@ -131,3 +131,36 @@ This work is licensed under multiple licences. Here is a brief summary as of Jan
 - All original source code is licensed under [Apache-2.0](./LICENSES/Apache-2.0.txt).
 - All documentation is licensed under [CC-BY-4.0](./LICENSES/CC-BY-4.0.txt).
 - For more accurate information, check the individual files.
+
+## Java4Shell mitigation (ART-31067)
+
+Compose disables HotSpot Base64 intrinsics using `JAVA_TOOL_OPTIONS` for Keycloak,
+Solr, and REMS, including existing published images. The Azure Keycloak and Solr examples
+receive the same setting. Existing caller-supplied `JAVA_TOOL_OPTIONS` are retained and
+the mitigation is appended. Custom Compose overrides must retain it.
+
+This also covers deployments still using `keycloak-ga4gh-visa-issuer:1.0.5`,
+`gdi-userportal-solr:1.14.4`, or `cscfi/rems:v2.39` when this Compose setting is applied.
+The tags currently on main differ; this change does not upgrade application versions.
+Recreate all three containers after applying the configuration.
+
+For each service (`keycloak`, `solr`, `rems`), check the effective JVM default:
+
+```sh
+docker compose exec -T SERVICE java -XX:+PrintFlagsFinal -version 2>&1 | grep UseBASE64Intrinsics
+```
+
+Expect `false`. This launches a diagnostic JVM; it does not prove an already-running
+JVM inherited the flag. Confirm container recreation and inspect the running Java PID
+with `jcmd PID VM.flags -all` where the image includes `jcmd`; verify the flag is false.
+Record the image digest and `java -version`, and run authentication, search, and REMS
+application smoke tests after rollout. No live rollout is performed by this change.
+
+This is the vendor-recommended temporary mitigation for CVE-2026-114938, not a patched
+JDK release. Keep it until the bundled runtime has a vendor-confirmed fix and startup
+checks and application smoke tests pass. If overriding `JAVA_TOOL_OPTIONS`, retain
+`-XX:-UseBASE64Intrinsics` alongside any existing options.
+
+Verify the guest CPU flags and running Java versions on Deep, ELIXIR-LU OpenStack,
+and GCore. Lack of AVX-512 VBMI prevents this known code path but does not replace
+runtime updates. See the [Red Hat advisory](https://access.redhat.com/security/vulnerabilities/RHSB-2026-018).
