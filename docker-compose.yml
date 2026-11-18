@@ -7,6 +7,12 @@ x-lnds-trust-env: &lnds-trust-env
   SSL_CERT_FILE: /etc/lnds/ca-bundle.pem
   REQUESTS_CA_BUNDLE: /etc/lnds/ca-bundle.pem
 
+# Interim mitigation for CVE-2026-114938 (HotSpot AVX-512 Base64 decode intrinsic heap overflow):
+# the JVM reads JAVA_TOOL_OPTIONS itself, whatever the launcher. Used by solr, keycloak and rems.
+# Remove once patched JDK images are pinned.
+x-cve-2026-114938-env: &cve-2026-114938-env
+  JAVA_TOOL_OPTIONS: -XX:-UseBASE64Intrinsics
+
 volumes:
   ckan_storage:
     driver: local
@@ -105,6 +111,7 @@ services:
   solr:
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:main
     pull_policy: always
+    environment: *cve-2026-114938-env
     volumes:
       - solr_data:/var/solr
     restart: unless-stopped
@@ -136,6 +143,7 @@ services:
     env_file:
       - .env.keycloak
       - .env.secrets
+    environment: *cve-2026-114938-env
     ports:
       - 8080:8080
     volumes:
@@ -183,6 +191,7 @@ services:
     env_file:
       - .env
       - .env.secrets
+    environment: *cve-2026-114938-env
     volumes:
       - ./rems/config.edn:/rems/config/config.edn
       - ./rems/styles.css:/rems/theme/styles.css
