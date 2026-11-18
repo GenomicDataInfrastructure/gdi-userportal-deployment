@@ -4,6 +4,9 @@
 version: "3"
 services:
   solr:
+    environment:
+      # ART-31067 / CVE-2026-114938: retain until the bundled JDK is confirmed fixed.
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-} -XX:-UseBASE64Intrinsics"
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:1.1.2
     volumes:
       - ${WEBAPP_STORAGE_HOME}/solr_data:/var/solr

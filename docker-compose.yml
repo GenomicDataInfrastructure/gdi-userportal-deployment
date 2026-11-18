@@ -103,6 +103,9 @@ services:
         ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
 
   solr:
+    environment:
+      # ART-31067 / CVE-2026-114938: retain until the bundled JDK is confirmed fixed.
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-} -XX:-UseBASE64Intrinsics"
     image: ghcr.io/genomicdatainfrastructure/gdi-userportal-solr:main
     pull_policy: always
     volumes:
@@ -127,6 +130,9 @@ services:
       test: ["CMD", "redis-cli", "-e", "QUIT"]
 
   keycloak:
+    environment:
+      # ART-31067 / CVE-2026-114938: retain until the bundled JDK is confirmed fixed.
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-} -XX:-UseBASE64Intrinsics"
     build:
       context: keycloak/
     restart: unless-stopped
@@ -179,6 +185,9 @@ services:
       test: ["CMD", "curl", "-o", "/dev/null", "http://localhost:8080/q/health"]
 
   rems:
+    environment:
+      # ART-31067 / CVE-2026-114938: retain until the bundled JDK is confirmed fixed.
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-} -XX:-UseBASE64Intrinsics"
     image: cscfi/rems:v2.41@sha256:2b34f183f617ef890ab4fc6209512bbd3c4399f8054f8532b8b25d1850d7743c
     env_file:
       - .env

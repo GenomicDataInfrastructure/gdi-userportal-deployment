@@ -5,6 +5,9 @@
 version: "3"
 services:
   keycloak:
+    environment:
+      # ART-31067 / CVE-2026-114938: retain until the bundled JDK is confirmed fixed.
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:-} -XX:-UseBASE64Intrinsics"
     image: quay.io/keycloak/keycloak:23.0.3
     ports:
       - "8080:8080"
