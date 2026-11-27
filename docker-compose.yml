@@ -124,7 +124,7 @@ services:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
 
   redis:
-    image: redis:8.6.7@sha256:e6dae84f7db289dde3384fdb18d182556784e5a681df3a3f54d1289952364ce8
+    image: redis:8.12.0@sha256:56a1737794e36c3ebe8a4544a8ab421af3ab1a6488fb2238aec228c404933fed
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "-e", "QUIT"]
